@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useCards } from '../../hooks/useCards';
+import { Mnemo } from './Mnemo';
 import type { CardRecord, ReviewRating } from '../../types';
 
 type StudySessionProps = {
@@ -29,6 +30,7 @@ export function StudySession({ sessionId, cards, onExit }: StudySessionProps) {
   const [error, setError] = useState('');
   const [finished, setFinished] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [wrongFeedback, setWrongFeedback] = useState(false);
   const requeuedWrong = useRef(new Set<string>());
   const startedAt = useRef(Date.now());
   const current = queue[position];
@@ -42,6 +44,10 @@ export function StudySession({ sessionId, cards, onExit }: StudySessionProps) {
     if (!current || !flipped || submitting) return;
     const now = Date.now();
     setSubmitting(true);
+    if (rating === 'wrong') {
+      setWrongFeedback(true);
+      await new Promise<void>((resolve) => window.setTimeout(resolve, 220));
+    }
     try {
       const updatedCard = await saveCardReview(current, sessionId, rating, Math.max(0, now - cardStartedAt));
       const nextQueue = [...queue];
@@ -64,8 +70,10 @@ export function StudySession({ sessionId, cards, onExit }: StudySessionProps) {
       setPosition(nextPosition);
       setCardStartedAt(Date.now());
       setFlipped(false);
+      setWrongFeedback(false);
       setError('');
     } catch (reason) {
+      setWrongFeedback(false);
       setError(reason instanceof Error ? reason.message : 'Could not save this review.');
     } finally {
       setSubmitting(false);
@@ -87,6 +95,7 @@ export function StudySession({ sessionId, cards, onExit }: StudySessionProps) {
     const durationMinutes = Math.floor((Date.now() - startedAt.current) / 60000);
     return (
       <section className="study-end stacked-panel">
+        <Mnemo mood="excited" className="session-celebration-mascot" />
         <p className="eyebrow">Session complete</p>
         <h1>Nice work!</h1>
         <p>{completed} reviews · {completed ? Math.round((correct / completed) * 100) : 0}% remembered</p>
@@ -107,28 +116,41 @@ export function StudySession({ sessionId, cards, onExit }: StudySessionProps) {
   return (
     <main className="screen study-screen">
       <div className="study-topbar">
-        <progress value={position} max={queue.length} aria-label="Session progress" />
+        <div className="study-progress-track" role="progressbar" aria-label="Session progress" aria-valuenow={position} aria-valuemin={0} aria-valuemax={queue.length}>
+          <span style={{ ['--progress' as string]: `${position / queue.length * 100}%` }} />
+        </div>
         <span>{position + 1} / {queue.length}</span>
         <button className="text-button" disabled={submitting} onClick={() => void exit()}>Exit</button>
       </div>
-      <p className="study-timer">{Math.floor(elapsedSeconds / 60)}:{`${elapsedSeconds % 60}`.padStart(2, '0')}</p>
+      <div className="study-prompt-row">
+        <Mnemo mood="front" />
+        <span>Take your time. You’ve got this.</span>
+        <p className="study-timer">{Math.floor(elapsedSeconds / 60)}:{`${elapsedSeconds % 60}`.padStart(2, '0')}</p>
+      </div>
       {error && <p className="error-message" role="alert">{error}</p>}
-      <button className={flipped ? 'study-card is-flipped' : 'study-card'} onClick={() => setFlipped((value) => !value)} aria-label={flipped ? 'Show question' : 'Reveal answer'}>
-        <span>{flipped ? current.back : current.front}</span>
+      <button key={`${current.id}-${position}`} className={`study-card${flipped ? ' is-flipped' : ''}${wrongFeedback ? ' is-wrong' : ''}`} onClick={() => setFlipped((value) => !value)} aria-label={flipped ? 'Show question' : 'Reveal answer'}>
+        <span className="study-card-text">{flipped ? current.back : current.front}</span>
         <small>{flipped ? 'Tap to see question' : 'Tap to reveal answer'}</small>
       </button>
       <section className={flipped ? 'rating-control enabled' : 'rating-control'} aria-label="Rate your recall">
+        <svg className="rating-arcs" viewBox="0 0 320 158" aria-hidden="true">
+          <path className="rating-arc rating-arc-outer" d="M22 145 Q160 -14 298 145" />
+          <path className="rating-arc rating-arc-middle" d="M66 145 Q160 48 254 145" />
+          <path className="rating-arc rating-arc-inner" d="M112 145 Q160 97 208 145" />
+          <circle className="rating-dot" cx="160" cy="145" r="7" />
+        </svg>
         {ratings.map((rating) => (
           <button
             key={rating.value}
-            className={`rating-button ${rating.className}`}
+            className={`rating-button ${rating.className} rating-${rating.value}`}
             disabled={!flipped || submitting}
+            aria-label={`Rate ${rating.label}`}
             onClick={() => {
               if (rating.value === 'wrong') navigator.vibrate?.(30);
               else navigator.vibrate?.(10);
               void rate(rating.value);
             }}
-          >{rating.label}</button>
+          ><span>{rating.label}</span></button>
         ))}
       </section>
     </main>

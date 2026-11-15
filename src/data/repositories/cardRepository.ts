@@ -67,6 +67,32 @@ export async function importCards(nodeId: string, source: string): Promise<{ add
   return { added: records.length, skipped: preview.skipped, invalid: preview.invalid };
 }
 
+export async function createCard(nodeId: string, front: string, back: string): Promise<CardRecord> {
+  const cleanFront = front.trim();
+  const cleanBack = back.trim();
+  if (!cleanFront || !cleanBack) throw new Error('Add both a question and an answer.');
+  if (!await db.nodes.get(nodeId)) throw new Error('The selected topic no longer exists.');
+  const now = Date.now();
+  const empty = createEmptyCard(new Date(now));
+  const card: CardRecord = {
+    id: crypto.randomUUID(),
+    nodeId,
+    front: cleanFront,
+    back: cleanBack,
+    trap: false,
+    createdAt: now,
+    due: now,
+    stability: empty.stability,
+    difficulty: empty.difficulty,
+    state: State.New,
+    reps: empty.reps,
+    lapses: empty.lapses,
+    lastReview: null
+  };
+  await db.cards.add(card);
+  return card;
+}
+
 export async function createSession(startedAt: number, scopeNodeId: string | null, mode: StudyMode, plannedCount: number): Promise<string> {
   const id = crypto.randomUUID();
   await db.sessions.add({

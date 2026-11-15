@@ -1,19 +1,21 @@
 import { useEffect, useState } from 'react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 import { useNotes } from '../../hooks/useNotes';
 import { useTree } from '../../hooks/useTree';
 import { NodeSelect } from '../components/NodeSelect';
+import { NotesMarkdown } from '../components/NotesMarkdown';
+import { Mnemo } from '../components/Mnemo';
 
 export function NotesScreen() {
-  const { nodes, error: treeError } = useTree();
+  const { nodes, error: treeError, refresh: refreshTree } = useTree();
   const [nodeId, setNodeId] = useState('');
   const [selectedId, setSelectedId] = useState('');
   const [editing, setEditing] = useState(false);
+  const [creating, setCreating] = useState(false);
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [error, setError] = useState('');
-  const { notes, error: notesError, importFile: importNoteFile, save: saveNote } = useNotes(nodeId);
+  const [success, setSuccess] = useState('');
+  const { notes, error: notesError, importFile: importNoteFile, create: createNote, save: saveNote } = useNotes(nodeId);
 
   useEffect(() => {
     setNodeId((current) => nodes.some((node) => node.id === current) ? current : nodes[0]?.id ?? '');
@@ -35,11 +37,34 @@ export function NotesScreen() {
   async function handleImport(file?: File) {
     if (!file || !nodeId) return;
     try {
-      const note = await importNoteFile(file);
-      setSelectedId(note.id);
+      const result = await importNoteFile(file);
+      await refreshTree();
+      const firstNote = result.notes[0];
+      if (firstNote) {
+        setNodeId(firstNote.nodeId);
+        setSelectedId(firstNote.id);
+      }
+      setSuccess(`Imported ${result.notes.length} note${result.notes.length === 1 ? '' : 's'}${result.createdNodes ? ` and organized ${result.createdNodes} new topic${result.createdNodes === 1 ? '' : 's'}` : ''}.`);
       setError('');
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Could not import the note.');
+      setSuccess('');
+    }
+  }
+
+  async function handleCreate() {
+    try {
+      const note = await createNote(title, body);
+      setSelectedId(note.id);
+      setCreating(false);
+      setEditing(false);
+      setTitle('');
+      setBody('');
+      setSuccess('Your note is saved.');
+      setError('');
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'Could not save your note.');
+      setSuccess('');
     }
   }
 
@@ -48,6 +73,8 @@ export function NotesScreen() {
     try {
       await saveNote(selectedNote.id, title, body);
       setEditing(false);
+      setCreating(false);
+      setSuccess('Your changes are saved.');
       setError('');
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Could not save the note.');
@@ -56,20 +83,22 @@ export function NotesScreen() {
 
   return (
     <main className="screen">
-      <div className="panel-header">
-        <h1>Notes</h1>
-        {nodeId && (
+      <div className="panel-header notes-heading">
+        <div className="screen-intro"><p className="eyebrow">Your ideas, organized</p><h1>Notes</h1><p className="muted">Keep your study knowledge close at hand.</p><Mnemo className="screen-mascot notes-mascot" /></div>
+        {nodeId && <div className="notes-header-actions">
+          <button className="secondary-button" onClick={() => { setCreating(true); setEditing(true); setTitle(''); setBody(''); setSelectedId(''); }}>＋ Write note</button>
           <label className="primary-button file-button">
-            Import note
+            Import file
             <input type="file" accept=".txt,.md,text/plain,text/markdown" onChange={(event) => {
               const file = event.target.files?.[0];
               void handleImport(file);
               event.target.value = '';
             }} />
           </label>
-        )}
+        </div>}
       </div>
       {(error || treeError || notesError) && <p className="error-message" role="alert">{error || treeError || notesError}</p>}
+      {success && <p className="success-message" role="status">{success}</p>}
       {nodes.length === 0 ? (
         <p className="empty-message">Create a study area on Home before importing notes.</p>
       ) : (
@@ -84,7 +113,18 @@ export function NotesScreen() {
               ))}
               {notes.length === 0 && <p className="muted">No notes in this topic yet.</p>}
             </nav>
-            {selectedNote && (
+            {creating && (
+              <article className="markdown-card note-composer">
+                <div className="panel-header"><div><p className="eyebrow">Start with one good idea</p><h2>Write a note</h2></div>
+                  <div className="button-row"><button className="text-button" onClick={() => { setCreating(false); setEditing(false); }}>Cancel</button><button className="primary-button" onClick={() => void handleCreate()} disabled={!title.trim() || !body.trim()}>Save note</button></div>
+                </div>
+                <div className="editor-fields">
+                  <label className="field"><span>Title</span><input autoFocus value={title} onChange={(event) => setTitle(event.target.value)} placeholder="e.g. Cell structure" /></label>
+                  <label className="field"><span>Note content</span><textarea rows={14} value={body} onChange={(event) => setBody(event.target.value)} placeholder="Capture what you want to remember…" /></label>
+                </div>
+              </article>
+            )}
+            {selectedNote && !creating && (
               <article className="markdown-card">
                 <div className="panel-header">
                   <h2>{editing ? 'Edit note' : selectedNote.title}</h2>
@@ -110,7 +150,7 @@ export function NotesScreen() {
                       <textarea rows={18} value={body} onChange={(event) => setBody(event.target.value)} />
                     </label>
                   </div>
-                ) : <ReactMarkdown remarkPlugins={[remarkGfm]}>{selectedNote.body}</ReactMarkdown>}
+                ) : <NotesMarkdown body={selectedNote.body} />}
               </article>
             )}
           </div>

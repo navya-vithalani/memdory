@@ -1,5 +1,5 @@
 :root {
-  --bg: #f6f7fd;
+  --bg: #f5f6ff;
   --surface: #ffffff;
   --ink: #141a4d;
   --ink-soft: #5b6194;
@@ -17,6 +17,11 @@
   --blank: #8a93b8;
   --wrong: #ef5b6b;
   --shadow-soft: rgba(69, 71, 214, 0.12);
+  --shadow-card: 0 16px 38px rgba(48, 53, 146, 0.09);
+  --line: rgba(69, 71, 214, 0.1);
+  --motion-fast: 150ms;
+  --motion-standard: 250ms;
+  --motion-flip: 600ms;
   --radius-card: 20px;
   --radius-large: 28px;
   --screen-padding: 16px;

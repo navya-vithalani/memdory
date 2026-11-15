@@ -5,6 +5,7 @@ import { getStudyDayStartTimestamp } from '../core/streak/streak';
 import {
   countNewCardsIntroducedSince,
   countReviews,
+  createCard,
   createSession,
   finishSession,
   importCards,
@@ -19,6 +20,7 @@ export function useCards() {
   const loadSessions = useCallback((): Promise<SessionRecord[]> => listRecentSessions(), []);
   const previewImport = useCallback(previewCardImport, []);
   const importFile = useCallback(importCards, []);
+  const addCard = useCallback(createCard, []);
 
   const startSession = useCallback(async (
     scopeNodeId: string,
@@ -72,5 +74,5 @@ export function useCards() {
 
   const finish = useCallback(finishSession, []);
 
-  return { loadSessions, previewImport, importFile, startSession, review, finish };
+  return { loadSessions, previewImport, importFile, addCard, startSession, review, finish };
 }

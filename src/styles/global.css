@@ -4,14 +4,17 @@ html, body, #root {
   margin: 0;
   min-height: 100%;
   height: 100%;
-  font-family: 'Nunito', 'Segoe UI', sans-serif;
+  font-family: 'Nunito', 'Avenir Next', ui-rounded, system-ui, sans-serif;
   background: var(--bg);
   color: var(--ink);
 }
 
 body {
   min-height: 100vh;
-  background: linear-gradient(180deg, rgba(92, 200, 224, 0.12), rgba(255, 255, 255, 0));
+  background:
+    radial-gradient(ellipse at 12% 8%, rgba(92, 200, 224, 0.13), transparent 34rem),
+    radial-gradient(ellipse at 91% 30%, rgba(140, 148, 255, 0.12), transparent 34rem),
+    var(--bg);
 }
 
 a {
@@ -26,6 +29,11 @@ button, input, textarea {
 button {
   border: none;
   cursor: pointer;
+}
+
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus-visible {
+  outline: 3px solid rgba(69, 71, 214, 0.35);
+  outline-offset: 3px;
 }
 
 h1, h2, h3, p {

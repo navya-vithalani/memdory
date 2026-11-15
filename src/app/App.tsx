@@ -2,6 +2,8 @@ import { lazy, Suspense, useEffect, useState } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { TabBar } from '../ui/components/TabBar';
 import { PwaInstall } from '../ui/components/PwaInstall';
+import { AppHeader } from '../ui/components/AppHeader';
+import { AmbientBackground } from '../ui/components/AmbientBackground';
 import { useSettings } from '../hooks/useSettings';
 
 const HomeScreen = lazy(() => import('../ui/screens/HomeScreen').then((module) => ({ default: module.HomeScreen })));
@@ -28,7 +30,9 @@ export default function App() {
   return (
     <div className="app-shell">
       <div className="app-frame">
+        <AmbientBackground />
         {(error || storageError) && <p className="error-message settings-error" role="alert">{error || storageError}</p>}
+        <AppHeader />
         <Suspense fallback={<main className="screen loading-screen" role="status">Loading…</main>}>
           <Routes>
             <Route path="/" element={<HomeScreen />} />

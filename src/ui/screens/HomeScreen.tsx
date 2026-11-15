@@ -1,10 +1,11 @@
 import { useNavigate } from 'react-router-dom';
-import mascotHappy from '../../assets/mascot/mnemo-side-happy.svg';
 import { useHomeStats } from '../../hooks/useHomeStats';
 import { useSettings } from '../../hooks/useSettings';
 import { useTree } from '../../hooks/useTree';
 import { StatCard } from '../components/StatCard';
 import { TreeManager } from '../components/TreeManager';
+import { WeeklyStreak } from '../components/WeeklyStreak';
+import { Mnemo } from '../components/Mnemo';
 
 export function HomeScreen() {
   const { nodes, error, actions } = useTree();
@@ -12,64 +13,63 @@ export function HomeScreen() {
   const { snapshot, error: statsError } = useHomeStats(settings, nodes);
   const navigate = useNavigate();
   const progress = snapshot?.dailyGoal ? Math.min(100, snapshot.reviewsToday / snapshot.dailyGoal * 100) : 0;
+  const areaMastery = Object.fromEntries((snapshot?.areas ?? []).map(({ node, mastery }) => [node.id, mastery]));
 
   return (
     <main className="screen home-screen">
       <header className="home-header">
-        <div>
-          <p className="eyebrow">remembree</p>
-          <h1>Ready when you are</h1>
-        </div>
-        <button className="primary-button" onClick={() => navigate('/cards')} disabled={nodes.length === 0}>
-          Start session ({snapshot?.atRiskCards ?? 0} about to forget)
-        </button>
+        <div className="home-welcome"><p className="eyebrow">A little progress adds up</p><h1>Ready when you are.</h1></div>
+        <button className="home-quick-start" onClick={() => navigate('/cards')} disabled={nodes.length === 0} aria-label="Start a study session"><span aria-hidden="true">▶</span></button>
       </header>
 
-      <section className="hero-panel">
-        <div>
-          <p className="eyebrow">Current streak</p>
-          <h2>{snapshot?.currentStreak ?? 0} {snapshot?.currentStreak === 1 ? 'day' : 'days'}</h2>
-          <p className="muted">Longest: {snapshot?.longestStreak ?? 0} {snapshot?.longestStreak === 1 ? 'day' : 'days'}</p>
-          <p className="muted">Your notes and cards stay on this device.</p>
+      <section className="home-hero">
+        <div className="home-hero-copy">
+          <p className="eyebrow">Your next small win</p>
+          <h2>Make today<br />a day to remember.</h2>
+          <p>You're doing great. Let's keep it going.</p>
+          <button className="primary-button" onClick={() => navigate('/cards')} disabled={nodes.length === 0}>
+            <span aria-hidden="true">▶</span> Start a study session
+          </button>
+          {nodes.length === 0 && <span className="hero-hint">Add your first study area below to begin.</span>}
         </div>
-        <div className="home-progress-ring" style={{ ['--progress' as string]: progress }}>
-          <span>{snapshot?.reviewsToday ?? 0}/{snapshot?.dailyGoal ?? settings.dailyGoal}</span>
+        <Mnemo className="home-mascot" />
+        <div className="home-wave" aria-hidden="true" />
+      </section>
+
+      <section className="daily-progress-card">
+        <div className="daily-progress-copy">
+          <span className="eyebrow">Daily progress</span>
+          <strong>{snapshot?.reviewsToday ?? 0} <small>of {snapshot?.dailyGoal ?? settings.dailyGoal} cards</small></strong>
+          <span className="muted">{snapshot?.currentStreak ? `You're on a ${snapshot.currentStreak}-day streak` : 'Start a streak with one quick review'}</span>
+        </div>
+        <div className="home-progress-ring" style={{ ['--progress' as string]: progress }} role="img" aria-label={`${Math.round(progress)}% of daily goal`}>
+          <span>{Math.round(progress)}<small>%</small></span>
         </div>
       </section>
 
-      <img className="home-mascot" src={mascotHappy} alt="" />
       <section className="stats-grid">
-        <StatCard label="Due today" value={`${snapshot?.dueCards ?? 0}`} tone="orange" />
-        <StatCard label="About to forget" value={`${snapshot?.atRiskCards ?? 0}`} tone="indigo" />
-        <StatCard label="Today's goal" value={`${snapshot?.reviewsToday ?? 0}/${snapshot?.dailyGoal ?? settings.dailyGoal}`} tone="mint" />
+        <StatCard label="Due today" value={`${snapshot?.dueCards ?? 0}`} tone="indigo" />
+        <StatCard label="At risk" value={`${snapshot?.atRiskCards ?? 0}`} tone="mint" />
+        <StatCard label="Best streak" value={`${snapshot?.longestStreak ?? 0} days`} tone="orange" />
       </section>
-      {!!snapshot?.areas.length && (
-        <section className="card-list">
-          <h2>Areas</h2>
-          {snapshot.areas.map(({ node, mastery }) => (
-            <div key={node.id} className="area-row">
-              <div><strong>{node.name}</strong><small>Mastery</small></div>
-              <div className="mini-ring" style={{ ['--value' as string]: mastery }}><span>{mastery}%</span></div>
-            </div>
-          ))}
-        </section>
-      )}
+      <WeeklyStreak streak={snapshot?.currentStreak ?? 0} reviewedToday={(snapshot?.reviewsToday ?? 0) > 0} />
+
       {snapshot?.weakestTopic && (
-        <section className="stacked-panel">
-          <p className="eyebrow">Weakest topic</p>
-          <strong>{snapshot.weakestTopic.node.name}</strong>
-          <p className="muted">{Math.round(snapshot.weakestTopic.recall * 100)}% recall probability</p>
+        <section className="nudge-panel">
+          <span className="nudge-icon" aria-hidden="true">↗</span>
+          <div><p className="eyebrow">A good one to revisit</p><strong>{snapshot.weakestTopic.node.name}</strong><p className="muted">{Math.round(snapshot.weakestTopic.recall * 100)}% estimated recall</p></div>
+          <button className="secondary-button" onClick={() => navigate('/cards')}>Review</button>
         </section>
       )}
       {snapshot?.lastSession && (
-        <section className="stacked-panel">
-          <p className="eyebrow">Last session</p>
-          <strong>{snapshot.lastSession.completedCount} cards reviewed</strong>
-          <p className="muted">{new Date(snapshot.lastSession.endedAt).toLocaleString()}</p>
+        <section className="last-session-card">
+          <span className="last-session-icon" aria-hidden="true">✓</span>
+          <div><p className="eyebrow">Last session</p><strong>{snapshot.lastSession.completedCount} cards reviewed</strong><small>{new Date(snapshot.lastSession.endedAt).toLocaleString()}</small></div>
+          <span className="last-session-arrow" aria-hidden="true">→</span>
         </section>
       )}
       {(error || settingsError || statsError) && <p className="error-message" role="alert">{error || settingsError || statsError}</p>}
-      <TreeManager nodes={nodes} actions={actions} />
+      <TreeManager nodes={nodes} actions={actions} areaMastery={areaMastery} />
     </main>
   );
 }

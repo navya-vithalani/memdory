@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
+import { useBackup } from '../../hooks/useBackup';
 import { useSettings } from '../../hooks/useSettings';
+import { Mnemo } from '../components/Mnemo';
 
 function formatDayStart(minutes: number): string {
   const hour = Math.floor(minutes / 60);
@@ -10,9 +12,12 @@ function formatDayStart(minutes: number): string {
 export function ProfileScreen() {
   const { settings, ready, error, updateSettings, setTheme } = useSettings();
   const [saveError, setSaveError] = useState('');
+  const [backupStatus, setBackupStatus] = useState('');
+  const [backupMode, setBackupMode] = useState<'merge' | 'replace'>('merge');
   const [dailyGoal, setDailyGoal] = useState(`${settings.dailyGoal}`);
   const [newCardsPerDay, setNewCardsPerDay] = useState(`${settings.newCardsPerDay}`);
   const [dayStartMinutes, setDayStartMinutes] = useState(`${settings.dayStartMinutes}`);
+  const { createBackup, restoreBackup } = useBackup();
 
   useEffect(() => {
     setDailyGoal(`${settings.dailyGoal}`);
@@ -36,18 +41,57 @@ export function ProfileScreen() {
     }
   }
 
+  async function exportData() {
+    try {
+      const backup = await createBackup();
+      const backupTimestamp = Date.now();
+      backup.tables.settings = backup.tables.settings.map((setting) => ({
+        ...setting,
+        lastBackupAt: backupTimestamp
+      }));
+      const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `remembree-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      link.click();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      await updateSettings({ lastBackupAt: backupTimestamp });
+      setBackupStatus('Your backup is ready and saved to your downloads.');
+      setSaveError('');
+    } catch (reason) {
+      setSaveError(reason instanceof Error ? reason.message : 'Could not export your backup.');
+      setBackupStatus('');
+    }
+  }
+
+  async function importData(file?: File) {
+    if (!file) return;
+    if (backupMode === 'replace' && !window.confirm('Replace all Remembery data on this device with this backup? This cannot be undone.')) return;
+    try {
+      const restoredSettings = await restoreBackup(await file.text(), backupMode);
+      if (restoredSettings) await updateSettings(restoredSettings);
+      setBackupStatus(backupMode === 'replace' ? 'Backup restored on this device.' : 'Backup merged with your current data.');
+      setSaveError('');
+    } catch (reason) {
+      setSaveError(reason instanceof Error ? reason.message : 'Could not import this backup.');
+      setBackupStatus('');
+    }
+  }
+
   return (
     <main className="screen">
-      <h1>Profile</h1>
+      <header className="screen-intro"><p className="eyebrow">Make it yours</p><h1>Profile</h1><p className="muted">Your study space, your way.</p><Mnemo mood="sleepy" className="screen-mascot profile-mascot" /></header>
       {(error || saveError) && <p className="error-message" role="alert">{saveError || error}</p>}
       <div className="stacked-panel">
+        <div className="profile-section-heading"><p className="eyebrow">Preferences</p><h2>Study settings</h2></div>
         <div className="setting-row">
           <span>Theme</span>
-          <button className="toggle-pill" disabled={!ready} onClick={() => {
+          <button className="toggle-pill theme-toggle" aria-pressed={settings.theme === 'dark'} disabled={!ready} onClick={() => {
             void setTheme(settings.theme === 'light' ? 'dark' : 'light').catch((reason: unknown) => {
               setSaveError(reason instanceof Error ? reason.message : 'Could not save the theme.');
             });
-          }}>{settings.theme === 'light' ? 'Light' : 'Dark'}</button>
+          }}><span aria-hidden="true">{settings.theme === 'light' ? '☼' : '☾'}</span> {settings.theme === 'light' ? 'Light' : 'Dark'}</button>
         </div>
         <label className="setting-row">
           <span>Daily goal (reviews)</span>
@@ -62,6 +106,29 @@ export function ProfileScreen() {
           <input type="number" min="0" max="1439" value={dayStartMinutes} disabled={!ready} onChange={(event) => setDayStartMinutes(event.target.value)} onBlur={() => void saveNumber('dayStartMinutes', Number(dayStartMinutes))} />
         </label>
       </div>
+      <section className="stacked-panel backup-panel">
+        <div className="profile-section-heading"><p className="eyebrow">Keep your data safe</p><h2>Backup & restore</h2></div>
+        <p className="muted">Your notes and cards stay on this device. Make a backup before moving to another browser or device.</p>
+        {settings.lastBackupAt && <p className="backup-last-saved">Last backup: {new Date(settings.lastBackupAt).toLocaleDateString()}</p>}
+        {(!settings.lastBackupAt || Date.now() - settings.lastBackupAt > 7 * 24 * 60 * 60 * 1000) && <p className="backup-reminder">It’s been a while since your last backup. Keep your progress safe.</p>}
+        <button className="primary-button backup-export" disabled={!ready} onClick={() => void exportData()}>Export backup <span aria-hidden="true">↓</span></button>
+        <label className="field backup-mode">
+          <span>When restoring</span>
+          <select value={backupMode} onChange={(event) => setBackupMode(event.target.value as 'merge' | 'replace')}>
+            <option value="merge">Merge with this device</option>
+            <option value="replace">Replace all local data</option>
+          </select>
+        </label>
+        <label className="secondary-button file-button backup-import">
+          Import backup
+          <input type="file" accept=".json,application/json" onChange={(event) => {
+            void importData(event.target.files?.[0]);
+            event.target.value = '';
+          }} />
+        </label>
+        {backupStatus && <p className="backup-status" role="status">{backupStatus}</p>}
+      </section>
+      <p className="profile-version">remembree <span>·</span> v0.1.0</p>
     </main>
   );
 }

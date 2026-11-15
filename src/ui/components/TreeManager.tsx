@@ -1,45 +1,57 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { flattenTree, isValidTreeParent } from '../../hooks/useTree';
+import { getDescendantIds } from '../../core/tree/tree';
 import type { TreeNode } from '../../types';
 import type { TreeActions } from '../../hooks/useTree';
 
 type TreeManagerProps = {
   nodes: TreeNode[];
   actions: TreeActions;
+  areaMastery?: Record<string, number>;
 };
 
-export function TreeManager({ nodes, actions }: TreeManagerProps) {
+export function TreeManager({ nodes, actions, areaMastery = {} }: TreeManagerProps) {
+  const [activeNodeId, setActiveNodeId] = useState('');
+  const [createType, setCreateType] = useState<'area' | 'topic' | null>(null);
   const [name, setName] = useState('');
-  const [parentId, setParentId] = useState('');
+  const [editingId, setEditingId] = useState('');
+  const [editName, setEditName] = useState('');
   const [error, setError] = useState('');
+  const flattened = useMemo(() => flattenTree(nodes), [nodes]);
+  const roots = nodes.filter((node) => node.parentId === null);
+  const activeNode = nodes.find((node) => node.id === activeNodeId);
+  const activeChildren = nodes
+    .filter((node) => node.parentId === activeNodeId)
+    .sort((a, b) => a.order - b.order || a.name.localeCompare(b.name));
+
+  useEffect(() => {
+    if (!nodes.some((node) => node.id === activeNodeId)) setActiveNodeId(roots[0]?.id ?? '');
+  }, [activeNodeId, nodes, roots]);
 
   async function create() {
+    const parentId = createType === 'topic' ? activeNodeId || null : null;
     try {
-      await actions.create(name, parentId || null);
+      await actions.create(name, parentId);
       setName('');
+      setCreateType(null);
       setError('');
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : 'Could not create the tree node.');
+      setError(reason instanceof Error ? reason.message : 'Could not create this study area.');
     }
   }
 
-  async function rename(node: TreeNode) {
-    const nextName = window.prompt('Rename node', node.name);
-    if (nextName === null) return;
-    try {
-      await actions.rename(node.id, nextName);
-      setError('');
-    } catch (reason) {
-      setError(reason instanceof Error ? reason.message : 'Could not rename the tree node.');
-    }
+  function startRename(node: TreeNode) {
+    setEditingId(node.id);
+    setEditName(node.name);
   }
 
-  async function move(node: TreeNode, nextParentId: string) {
+  async function commitRename(nodeId: string) {
     try {
-      await actions.move(node.id, nextParentId || null);
+      await actions.rename(nodeId, editName);
+      setEditingId('');
       setError('');
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : 'Could not move the tree node.');
+      setError(reason instanceof Error ? reason.message : 'Could not rename this topic.');
     }
   }
 
@@ -47,74 +59,121 @@ export function TreeManager({ nodes, actions }: TreeManagerProps) {
     try {
       const counts = await actions.counts(node.id);
       const confirmed = window.confirm(
-        `Delete "${node.name}" and its ${counts.nodes - 1} descendant node(s)? This will also delete ${counts.notes} notes and ${counts.cards} cards.`
+        `Remove "${node.name}" and everything inside it?\n\nThis permanently removes ${counts.nodes} area/topic(s), ${counts.notes} notes, ${counts.cards} cards, and their review history.`
       );
       if (!confirmed) return;
       await actions.remove(node.id);
+      if (node.id === activeNodeId || flattened.some(({ node: descendant }) => descendant.parentId === node.id && descendant.id === activeNodeId)) {
+        setActiveNodeId(node.parentId ?? roots.find((root) => root.id !== node.id)?.id ?? '');
+      }
       setError('');
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : 'Could not delete the tree node.');
+      setError(reason instanceof Error ? reason.message : 'Could not remove this topic.');
     }
   }
 
-  async function reorder(nodeId: string, direction: -1 | 1) {
-    try {
-      await actions.reorder(nodeId, direction);
-      setError('');
-    } catch (reason) {
-      setError(reason instanceof Error ? reason.message : 'Could not reorder the tree node.');
-    }
+  function openCreate(type: 'area' | 'topic') {
+    setCreateType(type);
+    setName('');
   }
 
-  const flattened = flattenTree(nodes);
   return (
     <section className="stacked-panel tree-manager">
-      <h2>Study tree</h2>
-      <p className="muted">{nodes.length === 0 ? 'Create your first area to start organizing notes and cards.' : 'Organize your subjects and decks.'}</p>
-      <div className="form-row">
-        <label className="field">
-          <span>New node name</span>
-          <input value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. Chemistry" />
-        </label>
-        <label className="field">
-          <span>Parent</span>
-          <select value={parentId} onChange={(event) => setParentId(event.target.value)}>
-            <option value="">Root area</option>
-            {flattened.map(({ node, depth }) => (
-              <option key={node.id} value={node.id}>{'　'.repeat(depth)}{node.name}</option>
-            ))}
-          </select>
-        </label>
-        <button className="primary-button" onClick={() => void create()} disabled={!name.trim()}>Add</button>
+      <div className="tree-section-heading">
+        <div><p className="eyebrow">Your learning map</p><h2>Study areas</h2></div>
+        <button className="secondary-button add-area-button" onClick={() => openCreate('area')}><span aria-hidden="true">＋</span> New area</button>
       </div>
-      {error && <p className="error-message" role="alert">{error}</p>}
-      {flattened.length === 0 ? (
-        <p className="empty-message">Your tree starts empty. Add a root area above.</p>
-      ) : (
-        <ul className="tree-list">
-          {flattened.map(({ node, depth }) => {
-            const possibleParents = nodes.filter((candidate) => isValidTreeParent(nodes, node.id, candidate.id));
-            const siblings = flattened.filter((item) => item.node.parentId === node.parentId);
-            const siblingIndex = siblings.findIndex((item) => item.node.id === node.id);
-            return (
-              <li className="tree-row" key={node.id} style={{ ['--depth' as string]: depth }}>
-                <strong>{node.name}</strong>
-                <div className="tree-actions">
-                  <label className="visually-hidden" htmlFor={`move-${node.id}`}>Move {node.name}</label>
-                  <select id={`move-${node.id}`} value={node.parentId ?? ''} onChange={(event) => void move(node, event.target.value)}>
-                    <option value="">Root area</option>
-                    {possibleParents.map((parent) => <option key={parent.id} value={parent.id}>{parent.name}</option>)}
-                  </select>
-                  <button className="icon-button" aria-label={`Move ${node.name} up`} disabled={siblingIndex === 0} onClick={() => void reorder(node.id, -1)}>↑</button>
-                  <button className="icon-button" aria-label={`Move ${node.name} down`} disabled={siblingIndex === siblings.length - 1} onClick={() => void reorder(node.id, 1)}>↓</button>
-                  <button className="text-button" onClick={() => void rename(node)}>Rename</button>
-                  <button className="text-button danger-button" onClick={() => void remove(node)}>Delete</button>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
+      {createType === 'area' && (
+        <form className="inline-create-form" onSubmit={(event) => { event.preventDefault(); void create(); }}>
+          <label className="field"><span>Give your new area a name</span><input autoFocus value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. Biology" /></label>
+          <button className="primary-button" disabled={!name.trim()}>Create</button>
+          <button type="button" className="text-button" onClick={() => setCreateType(null)}>Cancel</button>
+        </form>
       )}
+      {roots.length ? (
+        <>
+          <div className="area-switcher" aria-label="Choose a study area">
+            {roots.map((root, index) => {
+              const childCount = nodes.filter((node) => node.parentId === root.id).length;
+              return (
+                <button key={root.id} className={`area-switcher-card${activeNodeId === root.id ? ' active' : ''}`} onClick={() => setActiveNodeId(root.id)}>
+                  <span className={`area-emoji tone-${index % 4}`} aria-hidden="true">{['✿', '◈', '✦', '◎'][index % 4]}</span>
+                  <strong>{root.name}</strong>
+                  <small>{childCount} {childCount === 1 ? 'topic' : 'topics'}</small>
+                  <span className="mini-ring area-switcher-mastery" style={{ ['--value' as string]: areaMastery[root.id] ?? 0 }} aria-label={`${areaMastery[root.id] ?? 0}% mastery`}>
+                    <span>{areaMastery[root.id] ?? 0}%</span>
+                  </span>
+                  <span className="area-card-arrow" aria-hidden="true">→</span>
+                </button>
+              );
+            })}
+          </div>
+          {activeNode && (
+            <section className="topic-explorer" aria-label={`Topics in ${activeNode.name}`}>
+              <div className="topic-explorer-heading">
+                <div>
+                  {activeNode.parentId && <button className="back-to-parent" onClick={() => setActiveNodeId(activeNode.parentId!)}>← {nodes.find((node) => node.id === activeNode.parentId)?.name}</button>}
+                  <p className="eyebrow">{activeNode.parentId ? 'Inside this topic' : 'Pick a topic to explore'}</p>
+                  {editingId === activeNode.id ? (
+                    <div className="inline-rename">
+                      <input aria-label="Rename area" value={editName} onChange={(event) => setEditName(event.target.value)} />
+                      <button className="text-button" onClick={() => void commitRename(activeNode.id)}>Save</button>
+                      <button className="text-button" onClick={() => setEditingId('')}>Cancel</button>
+                    </div>
+                  ) : <h3>{activeNode.name}</h3>}
+                </div>
+                <div className="topic-header-actions">
+                  <button className="icon-button" aria-label={`Rename ${activeNode.name}`} onClick={() => startRename(activeNode)}>✎</button>
+                  <button className="icon-button danger-button" aria-label={`Delete ${activeNode.name} and its contents`} onClick={() => void remove(activeNode)}>⌫</button>
+                  <button className="primary-button add-topic-button" onClick={() => openCreate('topic')}><span aria-hidden="true">＋</span> Add topic</button>
+                </div>
+              </div>
+              {createType === 'topic' && (
+                <form className="inline-create-form topic-create-form" onSubmit={(event) => { event.preventDefault(); void create(); }}>
+                  <label className="field"><span>New topic in {activeNode.name}</span><input autoFocus value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. Cell structure" /></label>
+                  <button className="primary-button" disabled={!name.trim()}>Create</button>
+                  <button type="button" className="text-button" onClick={() => setCreateType(null)}>Cancel</button>
+                </form>
+              )}
+              {activeChildren.length ? (
+                <div className="topic-list">
+                  {activeChildren.map((topic, index) => {
+                    const descendantCount = getDescendantIds(nodes, topic.id).length - 1;
+                    return (
+                      <article key={topic.id} className="topic-item">
+                        {editingId === topic.id ? (
+                          <div className="inline-rename topic-edit-inline">
+                            <input aria-label={`Rename ${topic.name}`} value={editName} onChange={(event) => setEditName(event.target.value)} />
+                            <button className="text-button" onClick={() => void commitRename(topic.id)}>Save</button>
+                            <button className="text-button" onClick={() => setEditingId('')}>Cancel</button>
+                          </div>
+                        ) : (
+                          <button className="topic-open" onClick={() => setActiveNodeId(topic.id)}>
+                            <span className={`topic-bullet bullet-${index % 4}`} aria-hidden="true">{['✳', '◇', '✦', '○'][index % 4]}</span>
+                            <span className="topic-title"><strong>{topic.name}</strong><small>{descendantCount} subtopics <span aria-hidden="true">·</span> open topic</small></span>
+                            <span className="topic-arrow" aria-hidden="true">→</span>
+                          </button>
+                        )}
+                        <div className="topic-item-actions">
+                          <button className="icon-button" aria-label={`Rename ${topic.name}`} onClick={() => startRename(topic)}>✎</button>
+                          <button className="icon-button danger-button" aria-label={`Delete ${topic.name} and its contents`} onClick={() => void remove(topic)}>⌫</button>
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              ) : <div className="topics-empty"><span aria-hidden="true">✦</span><p>No topics yet. Add one to start organizing notes and cards.</p><button className="secondary-button" onClick={() => openCreate('topic')}>Create first topic</button></div>}
+            </section>
+          )}
+        </>
+      ) : (
+        <div className="topics-empty">
+          <span aria-hidden="true">✧</span>
+          <p>Every great study plan starts somewhere. Create your first area and give your ideas a home.</p>
+          <button className="primary-button" onClick={() => openCreate('area')}>Create a study area</button>
+        </div>
+      )}
+      {error && <p className="error-message" role="alert">{error}</p>}
     </section>
   );
 }

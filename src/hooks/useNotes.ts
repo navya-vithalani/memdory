@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { createNoteFromFile, listNotes, updateNote } from '../data/repositories/noteRepository';
+import { createNote, importNotesFromMarkdown, listNotes, updateNote } from '../data/repositories/noteRepository';
 import type { NoteRecord } from '../types';
 
 export function useNotes(nodeId: string) {
@@ -39,7 +39,13 @@ export function useNotes(nodeId: string) {
   }, [nodeId]);
 
   const importFile = useCallback(async (file: File) => {
-    const note = await createNoteFromFile(nodeId, file.name, await file.text());
+    const result = await importNotesFromMarkdown(nodeId, file.name, await file.text());
+    await refresh();
+    return result;
+  }, [nodeId, refresh]);
+
+  const create = useCallback(async (title: string, body: string) => {
+    const note = await createNote(nodeId, title, body);
     await refresh();
     return note;
   }, [nodeId, refresh]);
@@ -49,5 +55,5 @@ export function useNotes(nodeId: string) {
     return refresh();
   }, [refresh]);
 
-  return { notes, error, refresh, importFile, save };
+  return { notes, error, refresh, importFile, create, save };
 }

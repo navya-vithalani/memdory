@@ -52,7 +52,7 @@ export function CardImportPanel({ nodes, onImported }: CardImportPanelProps) {
         setNodeId(value);
         setPreview(null);
       }} label="Target topic" />}
-      <label className="secondary-button file-button">
+      <label className="primary-button file-button">
         Choose .txt file
         <input type="file" accept=".txt,text/plain" onChange={(event) => {
           void loadFile(event.target.files?.[0]);
