@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { TreeNode } from '../../types';
-import { importCards, previewCardImport } from '../../data/repositories/cardRepository';
+import { useCards } from '../../hooks/useCards';
 import { NodeSelect } from './NodeSelect';
 
 type CardImportPanelProps = {
@@ -9,6 +9,7 @@ type CardImportPanelProps = {
 };
 
 export function CardImportPanel({ nodes, onImported }: CardImportPanelProps) {
+  const { previewImport, importFile } = useCards();
   const [nodeId, setNodeId] = useState(nodes[0]?.id ?? '');
   const [source, setSource] = useState('');
   const [fileName, setFileName] = useState('');
@@ -19,7 +20,7 @@ export function CardImportPanel({ nodes, onImported }: CardImportPanelProps) {
     if (!file) return;
     try {
       const text = await file.text();
-      const result = await previewCardImport(nodeId, text);
+      const result = await previewImport(nodeId, text);
       setSource(text);
       setFileName(file.name);
       setPreview(result);
@@ -32,7 +33,7 @@ export function CardImportPanel({ nodes, onImported }: CardImportPanelProps) {
   async function confirmImport() {
     if (!preview || !nodeId) return;
     try {
-      await importCards(nodeId, source);
+      await importFile(nodeId, source);
       setPreview(null);
       setSource('');
       setFileName('');

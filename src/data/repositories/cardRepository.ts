@@ -1,7 +1,7 @@
 import { createEmptyCard, State } from 'ts-fsrs';
 import { getDescendantIds } from '../../core/tree/tree';
 import { parseCards, type ParsedCard } from '../../core/importers/cardParser';
-import { db } from '../db';
+import { db, defaultSettings } from '../db';
 import type { CardRecord, ReviewRating, StudyMode } from '../../types';
 
 function normalizeFront(front: string): string {
@@ -89,7 +89,11 @@ export async function saveReview(
   timestamp: number,
   updatedCard: CardRecord
 ): Promise<void> {
-  await db.transaction('rw', db.cards, db.reviews, async () => {
+  await db.transaction('rw', db.cards, db.reviews, db.settings, async () => {
+    const [settings, previousReviewCount] = await Promise.all([
+      db.settings.get('settings'),
+      db.reviews.count()
+    ]);
     await db.cards.put(updatedCard);
     await db.reviews.add({
       id: crypto.randomUUID(),
@@ -98,6 +102,14 @@ export async function saveReview(
       rating,
       durationMs,
       timestamp
+    });
+    const priorAverage = settings?.avgSecondsPerCard ?? defaultSettings.avgSecondsPerCard;
+    const average = previousReviewCount === 0
+      ? durationMs / 1000
+      : (priorAverage * previousReviewCount + durationMs / 1000) / (previousReviewCount + 1);
+    await db.settings.put({
+      ...(settings ?? defaultSettings),
+      avgSecondsPerCard: Math.max(1, average)
     });
   });
 }

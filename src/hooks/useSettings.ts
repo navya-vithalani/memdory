@@ -29,7 +29,7 @@ export function useSettings() {
 
   const updateSettings = async (next: Partial<SettingsRecord>) => {
     const merged = { ...settings, ...next };
-    await db.settings.put(merged, 'settings');
+    await db.settings.put(merged);
     setSettings(merged);
     setError('');
   };

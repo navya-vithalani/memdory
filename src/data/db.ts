@@ -32,6 +32,7 @@ class RememberyDb extends Dexie {
 
 export const db = new RememberyDb();
 export const defaultSettings: SettingsRecord = {
+  id: 'settings',
   theme: 'light',
   dayStartMinutes: 210,
   newCardsPerDay: 20,
@@ -43,6 +44,6 @@ export const defaultSettings: SettingsRecord = {
 export async function ensureDefaultSettings(): Promise<void> {
   const existing = await db.settings.get('settings');
   if (!existing) {
-    await db.settings.put({ ...defaultSettings }, 'settings');
+    await db.settings.put({ ...defaultSettings });
   }
 }

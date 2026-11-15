@@ -6,5 +6,5 @@ export async function getSettings(): Promise<SettingsRecord | undefined> {
 }
 
 export async function saveSettings(settings: SettingsRecord): Promise<void> {
-  await db.settings.put(settings, 'settings');
+  await db.settings.put(settings);
 }

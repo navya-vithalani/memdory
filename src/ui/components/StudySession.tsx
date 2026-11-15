@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { scheduleCardReview } from '../../core/scheduler/reviewCard';
-import { finishSession, saveReview } from '../../data/repositories/cardRepository';
+import { useCards } from '../../hooks/useCards';
 import type { CardRecord, ReviewRating } from '../../types';
 
 type StudySessionProps = {
@@ -19,6 +18,7 @@ const ratings: Array<{ value: ReviewRating; label: string; className: string }> 
 ];
 
 export function StudySession({ sessionId, cards, onExit }: StudySessionProps) {
+  const { review: saveCardReview, finish } = useCards();
   const [queue, setQueue] = useState(cards);
   const [position, setPosition] = useState(0);
   const [flipped, setFlipped] = useState(false);
@@ -28,6 +28,7 @@ export function StudySession({ sessionId, cards, onExit }: StudySessionProps) {
   const [correct, setCorrect] = useState(0);
   const [error, setError] = useState('');
   const [finished, setFinished] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const requeuedWrong = useRef(new Set<string>());
   const startedAt = useRef(Date.now());
   const current = queue[position];
@@ -38,11 +39,11 @@ export function StudySession({ sessionId, cards, onExit }: StudySessionProps) {
   }, []);
 
   async function rate(rating: ReviewRating) {
-    if (!current || !flipped) return;
+    if (!current || !flipped || submitting) return;
     const now = Date.now();
-    const updatedCard = scheduleCardReview(current, rating, now);
+    setSubmitting(true);
     try {
-      await saveReview(current, sessionId, rating, Math.max(0, now - cardStartedAt), now, updatedCard);
+      const updatedCard = await saveCardReview(current, sessionId, rating, Math.max(0, now - cardStartedAt));
       const nextQueue = [...queue];
       nextQueue[position] = updatedCard;
       if (rating === 'wrong' && !requeuedWrong.current.has(current.id)) {
@@ -56,8 +57,8 @@ export function StudySession({ sessionId, cards, onExit }: StudySessionProps) {
       setCorrect(nextCorrect);
       const nextPosition = position + 1;
       if (nextPosition >= nextQueue.length) {
-        await finishSession(sessionId, nextCompleted);
         setFinished(true);
+        await finish(sessionId, nextCompleted);
         return;
       }
       setPosition(nextPosition);
@@ -66,13 +67,16 @@ export function StudySession({ sessionId, cards, onExit }: StudySessionProps) {
       setError('');
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Could not save this review.');
+    } finally {
+      setSubmitting(false);
     }
   }
 
   async function exit() {
+    if (submitting) return;
     if (!window.confirm('Exit this session? Your completed reviews will be saved.')) return;
     try {
-      await finishSession(sessionId, completed);
+      await finish(sessionId, completed);
       onExit();
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Could not save the session.');
@@ -87,18 +91,25 @@ export function StudySession({ sessionId, cards, onExit }: StudySessionProps) {
         <h1>Nice work!</h1>
         <p>{completed} reviews · {completed ? Math.round((correct / completed) * 100) : 0}% remembered</p>
         <p>{durationMinutes} minutes</p>
-        <button className="primary-button" onClick={onExit}>Done</button>
+        <button className="primary-button" disabled={submitting} onClick={() => {
+          setSubmitting(true);
+          void finish(sessionId, completed).then(onExit).catch((reason: unknown) => {
+            setError(reason instanceof Error ? reason.message : 'Could not save the session.');
+            setSubmitting(false);
+          });
+        }}>Done</button>
+        {error && <p className="error-message" role="alert">{error}</p>}
       </section>
     );
   }
 
-  const elapsedSeconds = Math.floor((clock - cardStartedAt) / 1000);
+  const elapsedSeconds = Math.max(0, Math.floor((clock - cardStartedAt) / 1000));
   return (
     <main className="screen study-screen">
       <div className="study-topbar">
         <progress value={position} max={queue.length} aria-label="Session progress" />
         <span>{position + 1} / {queue.length}</span>
-        <button className="text-button" onClick={() => void exit()}>Exit</button>
+        <button className="text-button" disabled={submitting} onClick={() => void exit()}>Exit</button>
       </div>
       <p className="study-timer">{Math.floor(elapsedSeconds / 60)}:{`${elapsedSeconds % 60}`.padStart(2, '0')}</p>
       {error && <p className="error-message" role="alert">{error}</p>}
@@ -111,7 +122,7 @@ export function StudySession({ sessionId, cards, onExit }: StudySessionProps) {
           <button
             key={rating.value}
             className={`rating-button ${rating.className}`}
-            disabled={!flipped}
+            disabled={!flipped || submitting}
             onClick={() => {
               if (rating.value === 'wrong') navigator.vibrate?.(30);
               else navigator.vibrate?.(10);

@@ -1,24 +1,16 @@
 import { useEffect, useState } from 'react';
-import { getRecallProbability } from '../../core/scheduler/reviewCard';
-import { minutesToCount, selectSessionCards } from '../../core/session/selectSessionCards';
-import { getStudyDayStartTimestamp } from '../../core/streak/streak';
-import {
-  countNewCardsIntroducedSince,
-  countReviews,
-  createSession,
-  listCardsInScope,
-  listRecentSessions
-} from '../../data/repositories/cardRepository';
-import { listNodes } from '../../data/repositories/treeRepository';
+import { useCards } from '../../hooks/useCards';
 import { useSettings } from '../../hooks/useSettings';
-import type { CardRecord, SessionRecord, StudyMode, TreeNode } from '../../types';
+import { useTree } from '../../hooks/useTree';
+import type { CardRecord, SessionRecord, StudyMode } from '../../types';
 import { CardImportPanel } from '../components/CardImportPanel';
 import { NodeSelect } from '../components/NodeSelect';
 import { StudySession } from '../components/StudySession';
 
 export function CardsScreen() {
   const { settings, ready } = useSettings();
-  const [nodes, setNodes] = useState<TreeNode[]>([]);
+  const { nodes, error: treeError } = useTree();
+  const { loadSessions, startSession: buildSession } = useCards();
   const [scopeNodeId, setScopeNodeId] = useState('');
   const [sessions, setSessions] = useState<SessionRecord[]>([]);
   const [mode, setMode] = useState<StudyMode>('about-to-forget');
@@ -30,56 +22,33 @@ export function CardsScreen() {
   const [error, setError] = useState('');
 
   async function refreshSessions() {
-    setSessions(await listRecentSessions());
+    setSessions(await loadSessions());
   }
 
   useEffect(() => {
     let active = true;
-    void Promise.all([listNodes(), listRecentSessions()]).then(([loadedNodes, loadedSessions]) => {
-      if (!active) return;
-      setNodes(loadedNodes);
-      setScopeNodeId((current) => loadedNodes.some((node) => node.id === current) ? current : loadedNodes[0]?.id ?? '');
-      setSessions(loadedSessions);
+    void loadSessions().then((loadedSessions) => {
+      if (active) setSessions(loadedSessions);
     }).catch((reason: unknown) => {
       if (active) setError(reason instanceof Error ? reason.message : 'Could not load cards and sessions.');
     });
     return () => {
       active = false;
     };
-  }, []);
+  }, [loadSessions]);
+
+  useEffect(() => {
+    setScopeNodeId((current) => nodes.some((node) => node.id === current) ? current : nodes[0]?.id ?? '');
+  }, [nodes]);
 
   async function startSession() {
     if (!scopeNodeId) return;
     try {
-      const now = Date.now();
-      const [cards, reviewCount, newCardsToday] = await Promise.all([
-        listCardsInScope(scopeNodeId),
-        countReviews(),
-        countNewCardsIntroducedSince(getStudyDayStartTimestamp(now, settings.dayStartMinutes))
-      ]);
-      const requestedCount = unit === 'minutes'
-        ? minutesToCount(amount, settings.avgSecondsPerCard)
-        : Math.max(0, Math.floor(amount));
-      const selectableCards = cards.map((card) => ({
-        id: card.id,
-        front: card.front,
-        due: card.due,
-        reviewed: card.lastReview !== null,
-        trap: card.trap,
-        recall: getRecallProbability(card, now)
-      }));
-      const selectedIds = selectSessionCards(selectableCards, mode, requestedCount, {
-        now,
-        includeNew,
-        newCardLimit: Math.max(0, settings.newCardsPerDay - newCardsToday),
-        totalReviews: reviewCount
-      }).map((card) => card.id);
-      const selectedCards = selectedIds.map((id) => cards.find((card) => card.id === id)).filter((card): card is CardRecord => card !== undefined);
+      const { sessionId: id, cards: selectedCards } = await buildSession(scopeNodeId, mode, amount, unit, includeNew, settings);
       if (selectedCards.length === 0) {
         setError('No cards are available for this scope and session mode.');
         return;
       }
-      const id = await createSession(now, scopeNodeId, mode, selectedCards.length);
       setStudyQueue(selectedCards);
       setSessionId(id);
       setError('');
@@ -107,7 +76,7 @@ export function CardsScreen() {
       <div className="panel-header">
         <h1>Cards</h1>
       </div>
-      {error && <p className="error-message" role="alert">{error}</p>}
+      {(error || treeError) && <p className="error-message" role="alert">{error || treeError}</p>}
       {nodes.length === 0 ? (
         <p className="empty-message">Create a study area on Home before adding cards.</p>
       ) : (

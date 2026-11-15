@@ -40,13 +40,13 @@ export function scheduleCardReview(card: CardRecord, rating: ReviewRating, now: 
     ...(lastReview ? { last_review: lastReview } : {})
   };
   const result = fsrs().repeat(fsrsCard, nowDate)[ratingToFsrs[rating]];
-  const scheduledDays = rating === 'partial'
-    ? Math.max(1, result.log.scheduled_days / 2)
-    : result.log.scheduled_days;
+  const scheduledDue = rating === 'partial'
+    ? now + Math.max(DAY_MS, (result.card.due.getTime() - now) / 2)
+    : result.card.due.getTime();
 
   return {
     ...card,
-    due: now + scheduledDays * DAY_MS,
+    due: scheduledDue,
     stability: result.card.stability,
     difficulty: result.card.difficulty,
     state: result.card.state,

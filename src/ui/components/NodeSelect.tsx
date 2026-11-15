@@ -1,4 +1,4 @@
-import { flattenTree } from '../../core/tree/tree';
+import { flattenTree } from '../../hooks/useTree';
 import type { TreeNode } from '../../types';
 
 type NodeSelectProps = {

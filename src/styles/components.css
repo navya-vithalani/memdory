@@ -565,6 +565,27 @@ small {
   object-fit: contain;
 }
 
+.home-progress-ring {
+  width: 82px;
+  height: 82px;
+  flex: 0 0 82px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: conic-gradient(var(--indigo) 0 calc(var(--progress, 0) * 1%), rgba(69, 71, 214, 0.12) 0);
+}
+
+.home-progress-ring span {
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--surface);
+  font-size: 13px;
+  font-weight: 800;
+}
+
 .settings-error {
   padding: 8px 16px 0;
 }

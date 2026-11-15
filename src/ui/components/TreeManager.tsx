@@ -1,36 +1,23 @@
 import { useState } from 'react';
-import { flattenTree, isValidParent } from '../../core/tree/tree';
+import { flattenTree, isValidTreeParent } from '../../hooks/useTree';
 import type { TreeNode } from '../../types';
-import {
-  createNode,
-  deleteNodeTree,
-  getNodeTreeCounts,
-  listNodes,
-  moveNode,
-  renameNode,
-  reorderNode
-} from '../../data/repositories/treeRepository';
+import type { TreeActions } from '../../hooks/useTree';
 
 type TreeManagerProps = {
   nodes: TreeNode[];
-  onChange: (nodes: TreeNode[]) => void;
+  actions: TreeActions;
 };
 
-export function TreeManager({ nodes, onChange }: TreeManagerProps) {
+export function TreeManager({ nodes, actions }: TreeManagerProps) {
   const [name, setName] = useState('');
   const [parentId, setParentId] = useState('');
   const [error, setError] = useState('');
 
-  async function refresh() {
-    onChange(await listNodes());
-  }
-
   async function create() {
     try {
-      await createNode(name, parentId || null);
+      await actions.create(name, parentId || null);
       setName('');
       setError('');
-      await refresh();
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Could not create the tree node.');
     }
@@ -40,9 +27,8 @@ export function TreeManager({ nodes, onChange }: TreeManagerProps) {
     const nextName = window.prompt('Rename node', node.name);
     if (nextName === null) return;
     try {
-      await renameNode(node.id, nextName);
+      await actions.rename(node.id, nextName);
       setError('');
-      await refresh();
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Could not rename the tree node.');
     }
@@ -50,9 +36,8 @@ export function TreeManager({ nodes, onChange }: TreeManagerProps) {
 
   async function move(node: TreeNode, nextParentId: string) {
     try {
-      await moveNode(node.id, nextParentId || null);
+      await actions.move(node.id, nextParentId || null);
       setError('');
-      await refresh();
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Could not move the tree node.');
     }
@@ -60,14 +45,13 @@ export function TreeManager({ nodes, onChange }: TreeManagerProps) {
 
   async function remove(node: TreeNode) {
     try {
-      const counts = await getNodeTreeCounts(node.id);
+      const counts = await actions.counts(node.id);
       const confirmed = window.confirm(
         `Delete "${node.name}" and its ${counts.nodes - 1} descendant node(s)? This will also delete ${counts.notes} notes and ${counts.cards} cards.`
       );
       if (!confirmed) return;
-      await deleteNodeTree(node.id);
+      await actions.remove(node.id);
       setError('');
-      await refresh();
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Could not delete the tree node.');
     }
@@ -75,9 +59,8 @@ export function TreeManager({ nodes, onChange }: TreeManagerProps) {
 
   async function reorder(nodeId: string, direction: -1 | 1) {
     try {
-      await reorderNode(nodeId, direction);
+      await actions.reorder(nodeId, direction);
       setError('');
-      await refresh();
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Could not reorder the tree node.');
     }
@@ -109,8 +92,8 @@ export function TreeManager({ nodes, onChange }: TreeManagerProps) {
         <p className="empty-message">Your tree starts empty. Add a root area above.</p>
       ) : (
         <ul className="tree-list">
-          {flattened.map(({ node, depth }, index) => {
-            const possibleParents = nodes.filter((candidate) => isValidParent(nodes, node.id, candidate.id));
+          {flattened.map(({ node, depth }) => {
+            const possibleParents = nodes.filter((candidate) => isValidTreeParent(nodes, node.id, candidate.id));
             const siblings = flattened.filter((item) => item.node.parentId === node.parentId);
             const siblingIndex = siblings.findIndex((item) => item.node.id === node.id);
             return (

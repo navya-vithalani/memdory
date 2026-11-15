@@ -55,6 +55,7 @@ export type SessionRecord = {
 };
 
 export type SettingsRecord = {
+  id: string;
   theme: ThemeName;
   dayStartMinutes: number;
   newCardsPerDay: number;

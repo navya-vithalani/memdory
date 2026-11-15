@@ -17,7 +17,7 @@ const pwaPlugin = VitePWA({
       { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' }
     ]
   }
-}) as any;
+});
 
 export default defineConfig({
   plugins: [react(), ...pwaPlugin],

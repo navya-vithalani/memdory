@@ -1,53 +1,27 @@
 import { useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import type { NoteRecord, TreeNode } from '../../types';
-import { listNodes } from '../../data/repositories/treeRepository';
-import { createNoteFromFile, listNotes, updateNote } from '../../data/repositories/noteRepository';
+import { useNotes } from '../../hooks/useNotes';
+import { useTree } from '../../hooks/useTree';
 import { NodeSelect } from '../components/NodeSelect';
 
 export function NotesScreen() {
-  const [nodes, setNodes] = useState<TreeNode[]>([]);
+  const { nodes, error: treeError } = useTree();
   const [nodeId, setNodeId] = useState('');
-  const [notes, setNotes] = useState<NoteRecord[]>([]);
   const [selectedId, setSelectedId] = useState('');
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [error, setError] = useState('');
+  const { notes, error: notesError, importFile: importNoteFile, save: saveNote } = useNotes(nodeId);
 
   useEffect(() => {
-    let active = true;
-    void listNodes().then((items) => {
-      if (!active) return;
-      setNodes(items);
-      setNodeId((current) => items.some((node) => node.id === current) ? current : items[0]?.id ?? '');
-    }).catch((reason: unknown) => {
-      if (active) setError(reason instanceof Error ? reason.message : 'Could not load the study tree.');
-    });
-    return () => {
-      active = false;
-    };
-  }, []);
+    setNodeId((current) => nodes.some((node) => node.id === current) ? current : nodes[0]?.id ?? '');
+  }, [nodes]);
 
   useEffect(() => {
-    if (!nodeId) {
-      setNotes([]);
-      setSelectedId('');
-      return;
-    }
-    let active = true;
-    void listNotes(nodeId).then((items) => {
-      if (!active) return;
-      setNotes(items);
-      setSelectedId((current) => items.some((note) => note.id === current) ? current : items[0]?.id ?? '');
-    }).catch((reason: unknown) => {
-      if (active) setError(reason instanceof Error ? reason.message : 'Could not load notes.');
-    });
-    return () => {
-      active = false;
-    };
-  }, [nodeId]);
+    setSelectedId((current) => notes.some((note) => note.id === current) ? current : notes[0]?.id ?? '');
+  }, [notes]);
 
   const selectedNote = notes.find((note) => note.id === selectedId);
 
@@ -58,13 +32,10 @@ export function NotesScreen() {
     setEditing(false);
   }, [selectedId, selectedNote?.updatedAt]);
 
-  async function importFile(file?: File) {
+  async function handleImport(file?: File) {
     if (!file || !nodeId) return;
     try {
-      const source = await file.text();
-      const note = await createNoteFromFile(nodeId, file.name, source);
-      const next = await listNotes(nodeId);
-      setNotes(next);
+      const note = await importNoteFile(file);
       setSelectedId(note.id);
       setError('');
     } catch (reason) {
@@ -72,11 +43,10 @@ export function NotesScreen() {
     }
   }
 
-  async function save() {
+  async function handleSave() {
     if (!selectedNote) return;
     try {
-      await updateNote(selectedNote.id, title, body);
-      setNotes(await listNotes(nodeId));
+      await saveNote(selectedNote.id, title, body);
       setEditing(false);
       setError('');
     } catch (reason) {
@@ -93,13 +63,13 @@ export function NotesScreen() {
             Import note
             <input type="file" accept=".txt,.md,text/plain,text/markdown" onChange={(event) => {
               const file = event.target.files?.[0];
-              void importFile(file);
+              void handleImport(file);
               event.target.value = '';
             }} />
           </label>
         )}
       </div>
-      {error && <p className="error-message" role="alert">{error}</p>}
+      {(error || treeError || notesError) && <p className="error-message" role="alert">{error || treeError || notesError}</p>}
       {nodes.length === 0 ? (
         <p className="empty-message">Create a study area on Home before importing notes.</p>
       ) : (
@@ -125,7 +95,7 @@ export function NotesScreen() {
                         setBody(selectedNote.body);
                         setEditing(false);
                       }}>Cancel</button>
-                      <button className="primary-button" onClick={() => void save()}>Save</button>
+                      <button className="primary-button" onClick={() => void handleSave()}>Save</button>
                     </div>
                   ) : <button className="secondary-button" onClick={() => setEditing(true)}>Edit</button>}
                 </div>
