@@ -1,0 +1,13 @@
+[data-theme='dark'] {
+  --bg: #0b0f33;
+  --surface: #141a4a;
+  --ink: #edeeff;
+  --ink-soft: #b1b9f2;
+  --navy: #2737ac;
+  --indigo: #8c94ff;
+  --indigo-tint: rgba(140, 148, 255, 0.18);
+  --orange: #ff9f45;
+  --orange-pressed: #ff7a00;
+  --orange-tint: rgba(255, 143, 62, 0.18);
+  --wave: #57c9eb;
+}
