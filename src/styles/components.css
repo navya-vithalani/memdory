@@ -237,6 +237,31 @@ small {
   color: var(--navy);
 }
 
+.pwa-install {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 0 12px 8px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.install-button {
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 999px;
+  background: var(--indigo-tint);
+  color: var(--navy);
+  font-weight: 800;
+}
+
+.install-instructions {
+  max-width: 440px;
+  color: var(--ink-soft);
+  font-size: 13px;
+  line-height: 1.45;
+  text-align: center;
+}
+
 .app-frame {
   min-height: min(820px, calc(100dvh - 48px));
 }

@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { TabBar } from '../ui/components/TabBar';
+import { PwaInstall } from '../ui/components/PwaInstall';
 import { useSettings } from '../hooks/useSettings';
 
 const HomeScreen = lazy(() => import('../ui/screens/HomeScreen').then((module) => ({ default: module.HomeScreen })));
@@ -38,6 +39,7 @@ export default function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Suspense>
+        <PwaInstall />
         <TabBar />
       </div>
     </div>

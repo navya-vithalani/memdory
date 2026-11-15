@@ -17,7 +17,7 @@ export function HomeScreen() {
     <main className="screen home-screen">
       <header className="home-header">
         <div>
-          <p className="eyebrow">Remembery</p>
+          <p className="eyebrow">remembree</p>
           <h1>Ready when you are</h1>
         </div>
         <button className="primary-button" onClick={() => navigate('/cards')} disabled={nodes.length === 0}>
