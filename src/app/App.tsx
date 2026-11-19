@@ -39,7 +39,7 @@ export default function App() {
       <div className="app-frame">
         <AmbientBackground />
         {(error || storageError) && <p className="error-message settings-error" role="alert">{error || storageError}</p>}
-        <AppHeader onMenu={() => setMenuOpen(true)} />
+        <AppHeader menuOpen={menuOpen} onMenu={() => setMenuOpen((prev) => !prev)} />
         <Suspense fallback={<main className="screen loading-screen" role="status">Loading…</main>}>
           <Routes>
             <Route path="/" element={<HomeScreen />} />
