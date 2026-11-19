@@ -1,6 +1,7 @@
 export type StudyMode = 'about-to-forget' | 'due' | 'random';
 export type ReviewRating = 'easy' | 'medium' | 'hard' | 'partial' | 'blank' | 'wrong';
 export type ThemeName = 'light' | 'dark';
+export type SessionStatus = 'in-progress' | 'completed' | 'abandoned';
 
 export type TreeNode = {
   id: string;
@@ -52,6 +53,10 @@ export type SessionRecord = {
   mode: StudyMode;
   plannedCount: number;
   completedCount: number;
+  status: SessionStatus;
+  queueCardIds: string[];
+  position: number;
+  completedAt: number | null;
 };
 
 export type SettingsRecord = {

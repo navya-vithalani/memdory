@@ -4,7 +4,17 @@ import { parseNoteTitle } from '../importers/noteParser';
 import { getSchedulerRating } from '../scheduler/ratingMap';
 import { getRecallProbability, scheduleCardReview } from '../scheduler/reviewCard';
 import { minutesToCount, selectSessionCards } from '../session/selectSessionCards';
-import { calculateLongestStreak, calculateStreak, getStudyDayStartTimestamp, studyDayKey } from '../streak/streak';
+import {
+  calculateLongestStreak,
+  calculateStreak,
+  calculateStreakFromSessions,
+  getCompletedStudyDays,
+  getCurrentWeekStudyDays,
+  getStudyDayStartTimestamp,
+  isFirstCompletedSessionOfDay,
+  studyDayKey,
+  type StreakSession
+} from '../streak/streak';
 import { getDescendantIds, isValidParent } from '../tree/tree';
 import type { CardRecord, TreeNode } from '../../types';
 
@@ -77,27 +87,87 @@ describe('streak logic', () => {
     expect(calculateStreak(reviews, now, 210)).toBe(2);
   });
 
-  it('uses the 3:30 AM study-day boundary', () => {
-    const timestamp = new Date(2025, 2, 15, 3, 0, 0).getTime();
-    expect(studyDayKey(timestamp, 210)).toBe('2025-03-14');
-  });
-
-  it('calculates the study-day start using local calendar time', () => {
-    const beforeBoundary = new Date(2025, 2, 9, 3, 29, 59).getTime();
-    const afterBoundary = new Date(2025, 2, 9, 3, 30, 0).getTime();
-    expect(studyDayKey(beforeBoundary, 210)).toBe('2025-03-08');
-    expect(studyDayKey(afterBoundary, 210)).toBe('2025-03-09');
-    expect(getStudyDayStartTimestamp(afterBoundary, 210)).toBe(new Date(2025, 2, 9, 3, 30, 0).getTime());
+  it('uses the 3:30 AM study-day boundary: 03:29 counts for previous day, 03:30 for new day', () => {
+    const at0329 = new Date(2025, 2, 9, 3, 29, 59).getTime();
+    const at0330 = new Date(2025, 2, 9, 3, 30, 0).getTime();
+    expect(studyDayKey(at0329, 210)).toBe('2025-03-08');
+    expect(studyDayKey(at0330, 210)).toBe('2025-03-09');
+    expect(getStudyDayStartTimestamp(at0330, 210)).toBe(new Date(2025, 2, 9, 3, 30, 0).getTime());
   });
 
   it('calculates the longest streak from unique local study days', () => {
     expect(calculateLongestStreak(['2025-03-08', '2025-03-09', '2025-03-10', '2025-03-12', '2025-03-12'])).toBe(3);
   });
 
-  it('counts yesterday when today has no review, including before the day boundary', () => {
-    const now = new Date(2025, 2, 15, 2, 0).getTime();
-    const reviews = [{ timestamp: new Date(2025, 2, 14, 2, 45).getTime() }];
-    expect(calculateStreak(reviews, now, 210)).toBe(1);
+  it('returns 0 when completed session was on Sunday and now is Thursday', () => {
+    // 2026-11-15 is Sunday, 2026-11-19 is Thursday
+    const sundayCompleted = new Date(2026, 10, 15, 14, 0, 0).getTime();
+    const nowThursday = new Date(2026, 10, 19, 10, 0, 0).getTime();
+    const sessions: StreakSession[] = [
+      { status: 'completed', completedAt: sundayCompleted }
+    ];
+    expect(calculateStreakFromSessions(sessions, nowThursday, 210)).toBe(0);
+  });
+
+  it('handles streak alive at risk and dead: Mon/Tue/Wed completed, Wed -> 3, Thu none -> 3, Fri -> 0', () => {
+    // 2026-11-16 = Mon, 2026-11-17 = Tue, 2026-11-18 = Wed, 2026-11-19 = Thu, 2026-11-20 = Fri
+    const mon = new Date(2026, 10, 16, 10, 0, 0).getTime();
+    const tue = new Date(2026, 10, 17, 10, 0, 0).getTime();
+    const wed = new Date(2026, 10, 18, 10, 0, 0).getTime();
+    const sessions: StreakSession[] = [
+      { status: 'completed', completedAt: mon },
+      { status: 'completed', completedAt: tue },
+      { status: 'completed', completedAt: wed }
+    ];
+
+    const nowWed = new Date(2026, 10, 18, 12, 0, 0).getTime();
+    expect(calculateStreakFromSessions(sessions, nowWed, 210)).toBe(3);
+
+    const nowThuNone = new Date(2026, 10, 19, 12, 0, 0).getTime();
+    expect(calculateStreakFromSessions(sessions, nowThuNone, 210)).toBe(3); // at risk
+
+    const nowFriNone = new Date(2026, 10, 20, 12, 0, 0).getTime();
+    expect(calculateStreakFromSessions(sessions, nowFriNone, 210)).toBe(0); // dead
+  });
+
+  it('never counts abandoned or in-progress sessions', () => {
+    const today = new Date(2026, 10, 19, 12, 0, 0).getTime();
+    const sessions: StreakSession[] = [
+      { status: 'in-progress', completedAt: null },
+      { status: 'abandoned', completedAt: today }
+    ];
+    expect(getCompletedStudyDays(sessions, 210)).toEqual([]);
+    expect(calculateStreakFromSessions(sessions, today, 210)).toBe(0);
+  });
+
+  it('produces Monday-to-Sunday 7 drops with correct flags in getCurrentWeekStudyDays', () => {
+    // 2026-11-18 is Wednesday
+    const wednesday = new Date(2026, 10, 18, 12, 0, 0).getTime();
+    const completedDays = ['2026-11-16', '2026-11-17']; // Mon, Tue completed
+    const days = getCurrentWeekStudyDays(completedDays, wednesday, 210);
+
+    expect(days).toHaveLength(7);
+    expect(days.map((d) => d.label)).toEqual(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']);
+    expect(days[0].dayKey).toBe('2026-11-16'); // Mon
+    expect(days[0].isCompleted).toBe(true);
+    expect(days[1].isCompleted).toBe(true);
+    expect(days[2].dayKey).toBe('2026-11-18'); // Wed (today)
+    expect(days[2].isToday).toBe(true);
+    expect(days[2].isCompleted).toBe(false);
+    expect(days[3].isFuture).toBe(true); // Thu
+    expect(days[6].dayKey).toBe('2026-11-22'); // Sun
+    expect(days[6].isFuture).toBe(true);
+  });
+
+  it('identifies if a session is the first completed session of a study day', () => {
+    const t1 = new Date(2026, 10, 18, 10, 0, 0).getTime();
+    const t2 = new Date(2026, 10, 18, 15, 0, 0).getTime();
+    const sessions = [
+      { id: 's1', status: 'completed', completedAt: t1 },
+      { id: 's2', status: 'completed', completedAt: t2 }
+    ];
+    expect(isFirstCompletedSessionOfDay(sessions, 's1', 210)).toBe(true);
+    expect(isFirstCompletedSessionOfDay(sessions, 's2', 210)).toBe(false);
   });
 });
 

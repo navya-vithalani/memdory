@@ -1,9 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
 import { getRecallProbability } from '../core/scheduler/reviewCard';
-import { calculateLongestStreak, calculateStreakFromDayKeys, getStudyDayStartTimestamp, studyDayKey } from '../core/streak/streak';
+import {
+  calculateLongestStreak,
+  calculateStreakFromDayKeys,
+  getCompletedStudyDays,
+  getStudyDayStartTimestamp,
+  studyDayKey
+} from '../core/streak/streak';
 import { getDescendantIds } from '../core/tree/tree';
 import { db } from '../data/db';
-import { listRecentSessions } from '../data/repositories/cardRepository';
 import type { CardRecord, SessionRecord, SettingsRecord, TreeNode } from '../types';
 
 const AT_RISK_RECALL = 0.9;
@@ -18,19 +23,30 @@ export type HomeSnapshot = {
   areas: Array<{ node: TreeNode; mastery: number }>;
   weakestTopic: { node: TreeNode; recall: number } | null;
   lastSession: SessionRecord | null;
+  inProgressSession: SessionRecord | null;
+  completedDayKeys: string[];
+  completedToday: boolean;
 };
 
 async function loadSnapshot(settings: SettingsRecord, nodes: TreeNode[]): Promise<HomeSnapshot> {
   const now = Date.now();
-  const [cards, reviewsToday, recentSessions] = await Promise.all([
+  const [cards, reviewsToday, allSessions] = await Promise.all([
     db.cards.toArray(),
     db.reviews.where('timestamp').aboveOrEqual(getStudyDayStartTimestamp(now, settings.dayStartMinutes)).count(),
-    listRecentSessions(1)
+    db.sessions.toArray()
   ]);
-  const dayKeys: string[] = [];
-  await db.reviews.orderBy('timestamp').eachKey((timestamp) => {
-    if (typeof timestamp === 'number') dayKeys.push(studyDayKey(timestamp, settings.dayStartMinutes));
-  });
+
+  const completedDayKeys = getCompletedStudyDays(allSessions, settings.dayStartMinutes);
+  const todayKey = studyDayKey(now, settings.dayStartMinutes);
+  const completedToday = completedDayKeys.includes(todayKey);
+
+  const inProgressSession = allSessions
+    .filter((s) => s.status === 'in-progress')
+    .sort((a, b) => b.startedAt - a.startedAt)[0] ?? null;
+
+  const lastSession = allSessions
+    .filter((s) => s.status === 'completed')
+    .sort((a, b) => (b.completedAt ?? b.endedAt) - (a.completedAt ?? a.endedAt))[0] ?? null;
 
   const areas = nodes
     .filter((node) => node.parentId === null)
@@ -56,15 +72,18 @@ async function loadSnapshot(settings: SettingsRecord, nodes: TreeNode[]): Promis
     .sort((a, b) => a.recall - b.recall)[0] ?? null;
 
   return {
-    currentStreak: calculateStreakFromDayKeys(dayKeys, now, settings.dayStartMinutes),
-    longestStreak: calculateLongestStreak(dayKeys),
+    currentStreak: calculateStreakFromDayKeys(completedDayKeys, now, settings.dayStartMinutes),
+    longestStreak: calculateLongestStreak(completedDayKeys),
     reviewsToday,
     dailyGoal: settings.dailyGoal,
     dueCards: cards.filter((card) => card.lastReview !== null && card.due <= now).length,
     atRiskCards: cards.filter((card) => card.lastReview !== null && (card.trap || getRecallProbability(card, now) <= AT_RISK_RECALL)).length,
     areas,
     weakestTopic,
-    lastSession: recentSessions[0] ?? null
+    lastSession,
+    inProgressSession,
+    completedDayKeys,
+    completedToday
   };
 }
 
@@ -88,5 +107,5 @@ export function useHomeStats(settings: SettingsRecord, nodes: TreeNode[]) {
     };
   }, [refresh]);
 
-  return { snapshot, error };
+  return { snapshot, error, refresh };
 }

@@ -85,12 +85,22 @@ export async function restoreBackup(source: string, mode: BackupMode): Promise<S
         db.settings.clear()
       ]);
     }
+    const normalizedSessions = tables.sessions.map((session) => {
+      const isCompleted = (session.completedCount ?? 0) >= (session.plannedCount ?? 0) && (session.plannedCount ?? 0) > 0;
+      return {
+        ...session,
+        status: session.status || (isCompleted ? 'completed' : 'abandoned'),
+        queueCardIds: session.queueCardIds || [],
+        position: session.position ?? session.completedCount ?? 0,
+        completedAt: session.completedAt !== undefined ? session.completedAt : (isCompleted ? (session.endedAt || session.startedAt) : null)
+      };
+    });
     await Promise.all([
       tables.nodes.length && db.nodes.bulkPut(tables.nodes),
       tables.notes.length && db.notes.bulkPut(tables.notes),
       tables.cards.length && db.cards.bulkPut(tables.cards),
       tables.reviews.length && db.reviews.bulkPut(tables.reviews),
-      tables.sessions.length && db.sessions.bulkPut(tables.sessions),
+      normalizedSessions.length && db.sessions.bulkPut(normalizedSessions),
       tables.settings.length && db.settings.bulkPut(tables.settings)
     ]);
   });

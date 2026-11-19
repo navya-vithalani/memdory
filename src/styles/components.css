@@ -1368,18 +1368,7 @@ small {
 .home-hero h2 { margin: 8px 0; font-size: clamp(24px, 6vw, 31px); line-height: 1.12; letter-spacing: -0.05em; }
 .home-hero-copy { max-width: 75%; }
 .home-hero .home-mascot { right: 12px; bottom: 20px; }
-.weekly-streak { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 20px; background: var(--surface); box-shadow: var(--shadow-card); }
-.weekly-streak-copy { display: grid; gap: 4px; }
-.weekly-streak-copy .eyebrow { color: var(--ink-soft); font-size: 9px; text-transform: uppercase; }
-.weekly-streak-copy strong { font-size: 18px; }
-.weekly-streak-copy strong small { font-size: 11px; font-weight: 700; }
-.streak-drops { display: flex; gap: clamp(4px, 1.8vw, 9px); }
-.streak-drop { display: grid; justify-items: center; gap: 1px; color: var(--ink-soft); font-size: 8px; font-weight: 800; }
-.streak-drop svg { width: 22px; height: 28px; overflow: visible; }
-.drop-outline { fill: color-mix(in srgb, var(--indigo-tint) 48%, var(--surface)); stroke: color-mix(in srgb, var(--indigo) 40%, transparent); stroke-width: 1.6; }
-.drop-water { fill: var(--wave); transform: translateY(var(--water-level, 28px)); transition: transform 650ms cubic-bezier(0.2, 0.85, 0.25, 1); }
-.streak-drop.filled .drop-water { animation: water-bob 2.4s ease-in-out infinite alternate; }
-.drop-shine { fill: none; stroke: rgba(255, 255, 255, 0.85); stroke-width: 1.5; stroke-linecap: round; }
+
 
 /* Interactive area and topic explorer */
 .tree-section-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 13px; }
@@ -1517,8 +1506,7 @@ small {
   .topic-header-actions { width: 100%; justify-content: flex-end; }
   .notes-heading { display: grid; }
   .notes-header-actions { justify-content: flex-start; }
-  .weekly-streak { align-items: flex-start; flex-direction: column; }
-  .streak-drops { width: 100%; justify-content: space-between; }
+
   .inline-create-form { grid-template-columns: minmax(0, 1fr) auto; }
   .inline-create-form .text-button:last-child { grid-column: 2; }
   .manual-card-launch small { display: none; }

@@ -93,19 +93,18 @@ export async function createCard(nodeId: string, front: string, back: string): P
   return card;
 }
 
-export async function createSession(startedAt: number, scopeNodeId: string | null, mode: StudyMode, plannedCount: number): Promise<string> {
-  const id = crypto.randomUUID();
-  await db.sessions.add({
-    id,
-    startedAt,
-    endedAt: startedAt,
-    scopeNodeId,
-    mode,
-    plannedCount,
-    completedCount: 0
-  });
-  return id;
-}
+export {
+  createSession,
+  finishSession,
+  completeSession,
+  abandonSession,
+  updateSessionProgress,
+  getActiveSession,
+  getSession,
+  listRecentSessions,
+  listAllCompletedSessions,
+  getSessionReviews
+} from './sessionRepository';
 
 export async function saveReview(
   card: CardRecord,
@@ -140,15 +139,7 @@ export async function saveReview(
   });
 }
 
-export async function finishSession(sessionId: string, completedCount: number): Promise<void> {
-  const session = await db.sessions.get(sessionId);
-  if (!session) throw new Error('Session not found.');
-  await db.sessions.put({ ...session, endedAt: Date.now(), completedCount });
-}
 
-export async function listRecentSessions(limit = 10) {
-  return db.sessions.orderBy('startedAt').reverse().limit(limit).toArray();
-}
 
 export async function countReviews(): Promise<number> {
   return db.reviews.count();

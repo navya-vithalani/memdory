@@ -1,0 +1,164 @@
+.weekly-streak {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 14px;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.weekly-streak-copy {
+  display: grid;
+  gap: 4px;
+}
+
+.weekly-streak-copy .eyebrow {
+  color: var(--ink-soft);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.weekly-streak-copy strong {
+  color: var(--ink);
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.weekly-streak-copy strong small {
+  color: var(--ink-soft);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.weekly-streak-drops {
+  display: flex;
+  align-items: center;
+  gap: clamp(6px, 1.6vw, 10px);
+}
+
+.weekly-streak-drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 32px;
+  position: relative;
+}
+
+.weekly-streak-drop.is-future {
+  opacity: 0.38;
+}
+
+.weekly-streak-drop svg.drop-svg {
+  width: 26px;
+  height: 34px;
+  overflow: visible;
+  position: relative;
+}
+
+/* Today indicator ring */
+.weekly-streak-drop.is-today::before {
+  content: '';
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid var(--indigo);
+  pointer-events: none;
+}
+
+.drop-outline {
+  fill: transparent;
+  stroke: var(--indigo);
+  stroke-width: 1.8;
+  transition: stroke var(--motion-standard) ease;
+}
+
+.weekly-streak-drop:not(.is-completed) .drop-outline {
+  stroke: color-mix(in srgb, var(--indigo) 35%, transparent);
+}
+
+.drop-water-wrapper {
+  animation: water-rise 900ms ease-out forwards;
+}
+
+.drop-wave {
+  fill: var(--orange);
+  animation: wave-drift 3s linear infinite;
+}
+
+.drop-wave.wave-2 {
+  fill: var(--orange-pressed);
+  opacity: 0.75;
+  animation-duration: 2.7s;
+  animation-direction: reverse;
+}
+
+.drop-shine {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.75);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+
+.drop-day-label {
+  color: var(--ink-soft);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.weekly-streak-drop.is-today .drop-day-label {
+  color: var(--indigo);
+  font-weight: 800;
+}
+
+@keyframes water-rise {
+  from {
+    transform: translateY(28px);
+  }
+  to {
+    transform: translateY(8px);
+  }
+}
+
+@keyframes wave-drift {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(32px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drop-water-wrapper {
+    animation: none !important;
+    transform: translateY(8px);
+  }
+  .drop-wave {
+    animation: none !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .weekly-streak {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .weekly-streak-drops {
+    justify-content: space-between;
+    width: 100%;
+  }
+}

@@ -1,0 +1,157 @@
+.resume-session-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 14px;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--orange);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.resume-session-copy {
+  display: grid;
+  gap: 3px;
+}
+
+.resume-session-copy .eyebrow {
+  color: var(--orange-pressed);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.resume-session-copy strong {
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.resume-session-copy .muted {
+  color: var(--ink-soft);
+  font-size: 13px;
+}
+
+.resume-session-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.resume-session-actions .resume-button {
+  min-height: 44px;
+  padding: 0 16px;
+  font-weight: 800;
+  border-radius: 999px;
+  background: var(--orange-tint);
+  color: var(--orange-pressed);
+  border: 1px solid color-mix(in srgb, var(--orange) 30%, transparent);
+}
+
+.resume-session-actions .resume-button:hover {
+  background: var(--orange);
+  color: #ffffff;
+}
+
+.resume-session-actions .discard-button {
+  min-height: 44px;
+  padding: 0 10px;
+  color: var(--ink-soft);
+}
+
+.session-prompt-modal {
+  max-width: 400px;
+  padding: 24px;
+}
+
+.session-prompt-info {
+  margin: 16px 0 20px;
+  font-size: 15px;
+  color: var(--ink-soft);
+  line-height: 1.5;
+}
+
+.session-prompt-info strong {
+  color: var(--ink);
+}
+
+.session-prompt-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.session-prompt-actions button {
+  min-height: 44px;
+  width: 100%;
+}
+
+.session-row-resume-button {
+  min-height: 32px;
+  padding: 2px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 999px;
+  background: var(--orange-tint);
+  color: var(--orange-pressed);
+  border: 1px solid color-mix(in srgb, var(--orange) 24%, transparent);
+}
+
+.session-row-resume-button:hover {
+  background: var(--orange);
+  color: #ffffff;
+}
+
+.exit-confirm-modal {
+  max-width: 360px;
+  padding: 24px;
+}
+
+.exit-modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.exit-modal-actions button {
+  min-height: 44px;
+  width: 100%;
+}
+
+.study-days-debug {
+  margin-top: 12px;
+}
+
+.study-days-debug summary {
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.study-days-debug div {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--ink);
+}
+
+.study-days-debug ul {
+  margin: 4px 0 0 16px;
+  padding: 0;
+}
+
+@media (max-width: 420px) {
+  .resume-session-card {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .resume-session-actions {
+    justify-content: flex-end;
+  }
+}

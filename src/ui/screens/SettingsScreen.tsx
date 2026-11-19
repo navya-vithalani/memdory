@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
+import { getCompletedStudyDays } from '../../core/streak/streak';
 import { useBackup } from '../../hooks/useBackup';
+import { useCards } from '../../hooks/useCards';
 import { useSettings } from '../../hooks/useSettings';
 import { Mnemo } from '../components/Mnemo';
 
@@ -18,7 +20,15 @@ export function SettingsScreen() {
   const [newCardsPerDay, setNewCardsPerDay] = useState(`${settings.newCardsPerDay}`);
   const [dayStartMinutes, setDayStartMinutes] = useState(`${settings.dayStartMinutes}`);
   const { createBackup, restoreBackup } = useBackup();
+  const { loadSessions } = useCards();
   const { hash } = useLocation();
+  const [studyDays, setStudyDays] = useState<string[]>([]);
+
+  useEffect(() => {
+    void loadSessions().then((sessions) => {
+      setStudyDays(getCompletedStudyDays(sessions, settings.dayStartMinutes));
+    });
+  }, [loadSessions, settings.dayStartMinutes]);
 
   useEffect(() => {
     if (hash === '#backup') document.getElementById('backup')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -144,6 +154,24 @@ export function SettingsScreen() {
           }} />
         </label>
         {backupStatus && <p className="backup-status" role="status">{backupStatus}</p>}
+      </section>
+      <section className="stacked-panel about-panel">
+        <div className="profile-section-heading"><p className="eyebrow">About</p><h2>Remembree</h2></div>
+        <p className="muted">Offline-first flashcards and notes with FSRS spaced repetition.</p>
+        <details className="study-days-debug">
+          <summary>Study days (debug: {studyDays.length})</summary>
+          <div>
+            {studyDays.length === 0 ? (
+              <p className="muted">No completed study days recorded yet.</p>
+            ) : (
+              <ul>
+                {studyDays.map((day) => (
+                  <li key={day}>{day}</li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </details>
       </section>
       <p className="profile-version">Remembree <span>·</span> v0.1.0</p>
     </main>

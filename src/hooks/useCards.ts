@@ -2,17 +2,22 @@ import { useCallback } from 'react';
 import { getRecallProbability, scheduleCardReview } from '../core/scheduler/reviewCard';
 import { minutesToCount, selectSessionCards } from '../core/session/selectSessionCards';
 import { getStudyDayStartTimestamp } from '../core/streak/streak';
+import { db } from '../data/db';
 import {
+  abandonSession,
+  completeSession,
   countNewCardsIntroducedSince,
   countReviews,
   createCard,
   createSession,
-  finishSession,
+  getActiveSession,
+  getSession,
   importCards,
   listCardsInScope,
   listRecentSessions,
   previewCardImport,
-  saveReview
+  saveReview,
+  updateSessionProgress
 } from '../data/repositories/cardRepository';
 import type { CardRecord, ReviewRating, SessionRecord, SettingsRecord, StudyMode } from '../types';
 
@@ -29,7 +34,7 @@ export function useCards() {
     unit: 'cards' | 'minutes',
     includeNew: boolean,
     settings: SettingsRecord
-  ): Promise<{ sessionId: string; cards: CardRecord[] }> => {
+  ): Promise<{ session: SessionRecord | null; cards: CardRecord[] }> => {
     const now = Date.now();
     const [cards, reviewCount, newCardsToday] = await Promise.all([
       listCardsInScope(scopeNodeId),
@@ -55,9 +60,31 @@ export function useCards() {
     const selectedCards = selection
       .map((selected) => cards.find((card) => card.id === selected.id))
       .filter((card): card is CardRecord => card !== undefined);
-    if (selectedCards.length === 0) return { sessionId: '', cards: [] };
-    const sessionId = await createSession(now, scopeNodeId, mode, selectedCards.length);
-    return { sessionId, cards: selectedCards };
+    if (selectedCards.length === 0) return { session: null, cards: [] };
+
+    const session = await createSession({
+      startedAt: now,
+      scopeNodeId,
+      mode,
+      plannedCount: selectedCards.length,
+      queueCardIds: selectedCards.map((c) => c.id)
+    });
+    return { session, cards: selectedCards };
+  }, []);
+
+  const resumeSession = useCallback(async (
+    sessionOrId: SessionRecord | string
+  ): Promise<{ session: SessionRecord; cards: CardRecord[] } | null> => {
+    const session = typeof sessionOrId === 'string'
+      ? await getSession(sessionOrId)
+      : sessionOrId;
+    if (!session) return null;
+    const cards = await db.cards.where('id').anyOf(session.queueCardIds).toArray();
+    const cardMap = new Map(cards.map((c) => [c.id, c]));
+    const orderedCards = session.queueCardIds
+      .map((id) => cardMap.get(id))
+      .filter((card): card is CardRecord => card !== undefined);
+    return { session, cards: orderedCards };
   }, []);
 
   const review = useCallback(async (
@@ -72,7 +99,22 @@ export function useCards() {
     return updatedCard;
   }, []);
 
-  const finish = useCallback(finishSession, []);
+  const saveProgress = useCallback(updateSessionProgress, []);
+  const finish = useCallback(completeSession, []);
+  const discard = useCallback(abandonSession, []);
+  const checkActiveSession = useCallback(getActiveSession, []);
 
-  return { loadSessions, previewImport, importFile, addCard, startSession, review, finish };
+  return {
+    loadSessions,
+    previewImport,
+    importFile,
+    addCard,
+    startSession,
+    resumeSession,
+    review,
+    saveProgress,
+    finish,
+    discard,
+    checkActiveSession
+  };
 }

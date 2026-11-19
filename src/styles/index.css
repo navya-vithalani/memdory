@@ -4,3 +4,6 @@
 @import './components/app-menu.css';
 @import './components/cards-screen.css';
 @import './components/profile.css';
+@import './components/weekly-streak.css';
+@import './components/session-resume.css';
+@import './components/celebration.css';
