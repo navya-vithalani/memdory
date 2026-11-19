@@ -1,0 +1,54 @@
+/* App shell: the window never scrolls. Header and tab bar stay pinned; only .screen scrolls. */
+html, body, #root { height: 100%; margin: 0; }
+body { overflow: hidden; overscroll-behavior: none; }
+
+.app-shell {
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  height: 100dvh;
+  background:
+    radial-gradient(ellipse at 9% 12%, rgba(92, 200, 224, 0.2), transparent 30rem),
+    radial-gradient(ellipse at 95% 78%, rgba(140, 148, 255, 0.2), transparent 32rem),
+    var(--bg);
+}
+
+.app-frame {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 480px;
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.app-frame > :not(.ambient-background) { position: relative; z-index: 1; }
+
+.app-frame > .screen {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 44px;
+}
+
+/* Study session is immersive: no header, tab bar or install prompt */
+.app-frame:has(.study-screen) .app-header,
+.app-frame:has(.study-screen) .tab-bar,
+.app-frame:has(.study-screen) .pwa-install { display: none; }
+
+@media (min-width: 600px) {
+  .app-shell { align-items: center; padding: 24px 12px; }
+  .app-frame {
+    height: min(900px, calc(100dvh - 48px));
+    border: 1px solid var(--line);
+    border-radius: 32px;
+    background: color-mix(in srgb, var(--surface) 90%, transparent);
+    box-shadow: 0 30px 90px rgba(36, 43, 119, 0.16);
+  }
+}
+
+[data-theme='dark'] .app-frame { border-color: rgba(140, 148, 255, 0.15); }

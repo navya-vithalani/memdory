@@ -12,14 +12,13 @@ export function HomeScreen() {
   const { settings, error: settingsError } = useSettings();
   const { snapshot, error: statsError } = useHomeStats(settings, nodes);
   const navigate = useNavigate();
-  const progress = snapshot?.dailyGoal ? Math.min(100, snapshot.reviewsToday / snapshot.dailyGoal * 100) : 0;
   const areaMastery = Object.fromEntries((snapshot?.areas ?? []).map(({ node, mastery }) => [node.id, mastery]));
 
   return (
     <main className="screen home-screen">
       <header className="home-header">
         <div className="home-welcome"><p className="eyebrow">A little progress adds up</p><h1>Ready when you are.</h1></div>
-        <button className="home-quick-start" onClick={() => navigate('/cards')} disabled={nodes.length === 0} aria-label="Start a study session"><span aria-hidden="true">▶</span></button>
+        <button className="home-quick-start" onClick={() => navigate('/cards?action=start')} disabled={nodes.length === 0} aria-label="Start a study session"><span aria-hidden="true">▶</span></button>
       </header>
 
       <section className="home-hero">
@@ -27,24 +26,13 @@ export function HomeScreen() {
           <p className="eyebrow">Your next small win</p>
           <h2>Make today<br />a day to remember.</h2>
           <p>You're doing great. Let's keep it going.</p>
-          <button className="primary-button" onClick={() => navigate('/cards')} disabled={nodes.length === 0}>
+          <button className="primary-button" onClick={() => navigate('/cards?action=start')} disabled={nodes.length === 0}>
             <span aria-hidden="true">▶</span> Start a study session
           </button>
           {nodes.length === 0 && <span className="hero-hint">Add your first study area below to begin.</span>}
         </div>
         <Mnemo className="home-mascot" />
         <div className="home-wave" aria-hidden="true" />
-      </section>
-
-      <section className="daily-progress-card">
-        <div className="daily-progress-copy">
-          <span className="eyebrow">Daily progress</span>
-          <strong>{snapshot?.reviewsToday ?? 0} <small>of {snapshot?.dailyGoal ?? settings.dailyGoal} cards</small></strong>
-          <span className="muted">{snapshot?.currentStreak ? `You're on a ${snapshot.currentStreak}-day streak` : 'Start a streak with one quick review'}</span>
-        </div>
-        <div className="home-progress-ring" style={{ ['--progress' as string]: progress }} role="img" aria-label={`${Math.round(progress)}% of daily goal`}>
-          <span>{Math.round(progress)}<small>%</small></span>
-        </div>
       </section>
 
       <section className="stats-grid">
@@ -58,7 +46,7 @@ export function HomeScreen() {
         <section className="nudge-panel">
           <span className="nudge-icon" aria-hidden="true">↗</span>
           <div><p className="eyebrow">A good one to revisit</p><strong>{snapshot.weakestTopic.node.name}</strong><p className="muted">{Math.round(snapshot.weakestTopic.recall * 100)}% estimated recall</p></div>
-          <button className="secondary-button" onClick={() => navigate('/cards')}>Review</button>
+          <button className="secondary-button" onClick={() => navigate('/cards?action=start')}>Review</button>
         </section>
       )}
       {snapshot?.lastSession && (

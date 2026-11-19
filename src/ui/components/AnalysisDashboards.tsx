@@ -80,17 +80,32 @@ function RevisitTopics({ snapshot }: DashboardProps) {
   );
 }
 
-function ActivityHeatmap({ snapshot }: DashboardProps) {
+export function HeatmapCard({ snapshot }: DashboardProps) {
   const maxHeat = Math.max(1, ...snapshot.heatmap.map((day) => day.count));
+  return (
+    <DashboardCard eyebrow="Consistency" title="Last 5 weeks">
+      <p className="analysis-note">Each dot is one day</p>
+      <div className="heatmap" aria-label="Review activity over the last 35 days">
+        {snapshot.heatmap.map((day) => <span key={day.key} title={`${day.label}: ${day.count} reviews`} aria-label={`${day.label}: ${day.count} reviews`} style={{ ['--heat' as string]: day.count / maxHeat }} />)}
+      </div>
+    </DashboardCard>
+  );
+}
+
+export function StreakHistoryCard({ snapshot }: DashboardProps) {
   const maxStreakDay = Math.max(1, ...snapshot.streakHistory.map((day) => day.count));
   return (
+    <DashboardCard eyebrow="Showing up" title="Last 2 weeks">
+      <div className="streak-history">
+        {snapshot.streakHistory.map((day) => <span key={day.key} className={day.count ? 'studied' : ''} title={`${day.label}: ${day.count} reviews`} aria-label={`${day.label}: ${day.count} reviews`} style={{ ['--heat' as string]: day.count / maxStreakDay }}><small>{new Date(`${day.key}T12:00:00`).getDate()}</small></span>)}
+      </div>
+    </DashboardCard>
+  );
+}
+
+function AccuracyTrendCard({ snapshot }: DashboardProps) {
+  return (
     <>
-      <DashboardCard eyebrow="Consistency" title="Last 5 weeks">
-        <p className="analysis-note">Each dot is one day</p>
-        <div className="heatmap" aria-label="Review activity over the last 35 days">
-          {snapshot.heatmap.map((day) => <span key={day.key} title={`${day.label}: ${day.count} reviews`} aria-label={`${day.label}: ${day.count} reviews`} style={{ ['--heat' as string]: day.count / maxHeat }} />)}
-        </div>
-      </DashboardCard>
       <DashboardCard eyebrow="Remembering more" title="Accuracy trend">
         <div className="analysis-chart"><ResponsiveContainer width="100%" height={170}>
           <AreaChart data={snapshot.accuracyTrend} margin={{ top: 8, right: 6, left: -20, bottom: 0 }}>
@@ -102,11 +117,6 @@ function ActivityHeatmap({ snapshot }: DashboardProps) {
             <Area dataKey="accuracy" name="Accuracy %" type="monotone" connectNulls fill="url(#accuracyFill)" stroke="var(--indigo)" strokeWidth={3} />
           </AreaChart>
         </ResponsiveContainer></div>
-      </DashboardCard>
-      <DashboardCard eyebrow="Showing up" title="Last 2 weeks">
-        <div className="streak-history">
-          {snapshot.streakHistory.map((day) => <span key={day.key} className={day.count ? 'studied' : ''} title={`${day.label}: ${day.count} reviews`} aria-label={`${day.label}: ${day.count} reviews`} style={{ ['--heat' as string]: day.count / maxStreakDay }}><small>{new Date(`${day.key}T12:00:00`).getDate()}</small></span>)}
-        </div>
       </DashboardCard>
     </>
   );
@@ -151,7 +161,7 @@ export function OverviewDashboard({ snapshot }: DashboardProps) {
 }
 
 export function ActivityDashboard({ snapshot }: DashboardProps) {
-  return <ActivityHeatmap snapshot={snapshot} />;
+  return <AccuracyTrendCard snapshot={snapshot} />;
 }
 
 export function TopicsDashboard({ snapshot }: DashboardProps) {

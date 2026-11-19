@@ -12,11 +12,12 @@ import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 var pwaPlugin = VitePWA({
     registerType: 'autoUpdate',
+    workbox: { globPatterns: ['**/*.{js,css,html,woff2}'] },
     includeAssets: ['Icons/apple-touch-icon.png', 'Icons/icon-192.png', 'Icons/icon-512.png'],
     manifest: {
         id: '/',
-        name: 'remembree',
-        short_name: 'remembree',
+        name: 'Remembree',
+        short_name: 'Remembree',
         description: 'Offline-first flashcards and notes for daily study.',
         theme_color: '#1E2A78',
         background_color: '#F6F7FD',

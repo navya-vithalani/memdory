@@ -38,7 +38,9 @@ export const defaultSettings: SettingsRecord = {
   newCardsPerDay: 20,
   dailyGoal: 20,
   avgSecondsPerCard: 20,
-  lastBackupAt: null
+  lastBackupAt: null,
+  showTags: true,
+  showMnemoInSession: true
 };
 
 export async function ensureDefaultSettings(): Promise<void> {

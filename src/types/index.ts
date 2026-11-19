@@ -62,4 +62,6 @@ export type SettingsRecord = {
   dailyGoal: number;
   avgSecondsPerCard: number;
   lastBackupAt: number | null;
+  showTags?: boolean;
+  showMnemoInSession?: boolean;
 };
