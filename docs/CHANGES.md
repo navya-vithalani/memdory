@@ -91,6 +91,27 @@ Below, in order: **Nemo summary card** (6.2), **search field** ("Search past ses
 
 ---
 
+### Phase 1 review
+
+#### What changed
+
+Header and tab bar: I think the old problem was that the page itself could scroll when the mobile URL bar collapsed. The window is now locked and only the screen content scrolls, so the header and tab bar stay pinned. Please test this on your phone.
+Header: a hamburger on the left, “Remembree” in the middle and Mnemo on the right, which opens Profile. The “R” logo is gone.
+Tabs: Notes, Home and Cards. Home is a raised 68px indigo circle with a notch cut into the bar, a gentle bob and a ripple when active.
+Menu: a drawer from the left with Import, Start session, Analysis, Streak & activity, Backup, Settings, About and Connect (marked “Soon”).
+Home: the “X of 20 cards” ring is removed.
+Cards tab: a Start (▶) button, Add and Browse, then a Mnemo summary card, a search box and past sessions with Completed/Incomplete badges.
+Profile and Settings: Profile now shows your streak and the heatmap. Settings has your preferences and backup. Analysis stays reachable from the menu.
+Fonts: bundled so they also work offline.
+
+#### Placeholders for later phases
+
+Summary card: the message is a placeholder until Phase 6.
+Browse cards: shows a “coming soon” page until Phase 6.
+Completed/Incomplete badges: these are a rough guess for now. Real status and resuming come in Phase 2.
+Heatmap: it still shows 35 days, not full history.
+Manual card form: I moved it behind the Add button but didn’t restyle it
+
 ## Phase 2: Sessions and streak
 
 ### 2.1 Root causes found in the current code
