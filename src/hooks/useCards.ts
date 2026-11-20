@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { getRecallProbability, scheduleCardReview } from '../core/scheduler/reviewCard';
 import { minutesToCount, selectSessionCards } from '../core/session/selectSessionCards';
+import { spreadFamilies, getCardFamilyKey } from '../core/session/spreadFamilies';
 import { getStudyDayStartTimestamp } from '../core/streak/streak';
 import { db } from '../data/db';
 import {
@@ -35,14 +36,39 @@ export function useCards() {
     amount: number,
     unit: 'cards' | 'minutes',
     includeNew: boolean,
-    settings: SettingsRecord
+    settings: SettingsRecord,
+    options?: {
+      viewMode?: 'cards' | 'families';
+      selectedFamilyKeys?: string[];
+      starredOnly?: boolean;
+    }
   ): Promise<{ session: SessionRecord | null; cards: CardRecord[] }> => {
     const now = Date.now();
-    const [cards, reviewCount, newCardsToday] = await Promise.all([
+    let [cards, reviewCount, newCardsToday] = await Promise.all([
       listCardsInScope(scopeNodeId),
       countReviews(),
       countNewCardsIntroducedSince(getStudyDayStartTimestamp(now, settings.dayStartMinutes))
     ]);
+
+    if (options?.starredOnly) {
+      cards = cards.filter((card) => card.starred);
+    }
+
+    if (options?.viewMode === 'families') {
+      if (options.selectedFamilyKeys?.length) {
+        const allowed = new Set(options.selectedFamilyKeys);
+        cards = cards.filter((c) => allowed.has(getCardFamilyKey(c)));
+      } else {
+        // Keep all cards belonging to families of >= 2
+        const counts = new Map<string, number>();
+        for (const c of cards) {
+          const k = getCardFamilyKey(c);
+          counts.set(k, (counts.get(k) ?? 0) + 1);
+        }
+        cards = cards.filter((c) => (counts.get(getCardFamilyKey(c)) ?? 0) >= 2);
+      }
+    }
+
     const count = unit === 'minutes'
       ? minutesToCount(amount, settings.avgSecondsPerCard)
       : Math.max(0, Math.floor(amount));
@@ -59,15 +85,21 @@ export function useCards() {
       newCardLimit: Math.max(0, settings.newCardsPerDay - newCardsToday),
       totalReviews: reviewCount
     });
-    const selectedCards = selection
+    let selectedCards = selection
       .map((selected) => cards.find((card) => card.id === selected.id))
       .filter((card): card is CardRecord => card !== undefined);
     if (selectedCards.length === 0) return { session: null, cards: [] };
+
+    // In single cards mode, ensure family members are kept >= 5 positions apart
+    if (options?.viewMode !== 'families') {
+      selectedCards = spreadFamilies(selectedCards, 5);
+    }
 
     const session = await createSession({
       startedAt: now,
       scopeNodeId,
       mode,
+      viewMode: options?.viewMode ?? 'cards',
       plannedCount: selectedCards.length,
       queueCardIds: selectedCards.map((c) => c.id)
     });
@@ -94,11 +126,12 @@ export function useCards() {
     card: CardRecord,
     sessionId: string,
     rating: ReviewRating,
-    durationMs: number
+    durationMs: number,
+    studyMode: 'single' | 'family' = 'single'
   ) => {
     const now = Date.now();
     const updatedCard = scheduleCardReview(card, rating, now);
-    await saveReview(card, sessionId, rating, durationMs, now, updatedCard);
+    await saveReview(card, sessionId, rating, durationMs, now, updatedCard, undefined, studyMode);
     return updatedCard;
   }, []);
 

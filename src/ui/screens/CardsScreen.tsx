@@ -109,9 +109,21 @@ export function CardsScreen() {
     }
   }
 
-  async function startSession({ scopeNodeId, mode, amount, unit, includeNew }: SessionParams) {
+  async function startSession(params: SessionParams) {
     try {
-      const { session, cards } = await buildSession(scopeNodeId, mode, amount, unit, includeNew, settings);
+      const { session, cards } = await buildSession(
+        params.scopeNodeId,
+        params.mode,
+        params.amount,
+        params.unit,
+        params.includeNew,
+        settings,
+        {
+          viewMode: params.viewMode,
+          selectedFamilyKeys: params.selectedFamilyKeys,
+          starredOnly: params.starredOnly
+        }
+      );
       if (!session || cards.length === 0) {
         setError('No cards are available for this scope and session mode.');
         return;
@@ -126,9 +138,19 @@ export function CardsScreen() {
     }
   }
 
-  async function addManualCard(nodeId: string, front: string, back: string) {
+  async function addManualCard(
+    nodeId: string,
+    front: string,
+    back: string,
+    options?: {
+      explanation?: string | null;
+      tags?: string[];
+      direction?: 'one-way' | 'both';
+      starred?: boolean;
+    }
+  ) {
     try {
-      await saveCard(nodeId, front, back);
+      await saveCard(nodeId, front, back, options);
       setModal(null);
       setError('');
       setSuccess('Your card is ready to study.');
@@ -243,7 +265,7 @@ export function CardsScreen() {
           nodes={nodes}
           error={error}
           onClose={() => setModal(null)}
-          onSave={(n, f, b) => void addManualCard(n, f, b)}
+          onSave={(n, f, b, opts) => void addManualCard(n, f, b, opts)}
         />
       )}
       {modal === 'import' && (

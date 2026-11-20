@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import 'fake-indexeddb/auto';
 import Dexie from 'dexie';
-import { MomdoryDb } from '../db';
+import { memdoryDb } from '../db';
 
 describe('database v4 upgrade migration', () => {
   it('migrates v3 schema into v4 preserving content and moving scheduling to reviewItems', async () => {
@@ -81,8 +81,8 @@ describe('database v4 upgrade migration', () => {
 
     oldDb.close();
 
-    // Now open with MomdoryDb (v4)
-    const newDb = new MomdoryDb(dbName);
+    // Now open with memdoryDb (v4)
+    const newDb = new memdoryDb(dbName);
     await newDb.open();
 
     const migratedCard = await newDb.cards.get(cardId);

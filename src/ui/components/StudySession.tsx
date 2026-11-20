@@ -6,6 +6,7 @@ import { useTree } from '../../hooks/useTree';
 import { db } from '../../data/db';
 import type { CardRecord } from '../../types';
 import { CompletionCelebration } from './CompletionCelebration';
+import { FamilyStudyCard } from './FamilyStudyCard';
 import { Mnemo } from './Mnemo';
 import { MnemoCompanion, type MnemoPlacement } from './MnemoCompanion';
 import { StudyCard } from './StudyCard';
@@ -86,41 +87,58 @@ export function StudySession({ sessionId, cards, initialPosition = 0, onExit }: 
   return (
     <main className="screen study-screen" ref={screenRef}>
       <StudyTopBar
-        position={session.position}
-        total={session.queue.length}
+        position={session.viewMode === 'families' ? session.familyIndex : session.position}
+        total={session.viewMode === 'families' ? session.familyGroups.length : session.queue.length}
         elapsedSeconds={session.elapsedSeconds}
         disabled={session.submitting}
         onClose={() => setShowExitModal(true)}
       />
       {session.error && <p className="error-message study-error" role="alert">{session.error}</p>}
 
-      <div className="study-stage">
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.div
-            key={`${current.id}-${session.position}`}
-            className="study-slot"
-            initial={{ x: slide, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: -slide, opacity: 0 }}
-            transition={{ type: 'spring', stiffness: 260, damping: 26 }}
-          >
-            <StudyCard
-              front={current.front}
-              back={current.back}
-              explanation={current.explanation}
-              topicName={topicName}
-              labelTag={labelTag}
-              flipped={session.flipped}
-              wrong={session.wrongFeedback}
-              onFlip={session.flip}
-            />
-          </motion.div>
-        </AnimatePresence>
-      </div>
+      {session.viewMode === 'families' && session.currentFamily ? (
+        <div className="study-stage family-stage" style={{ padding: '0 16px 20px', width: '100%' }}>
+          <FamilyStudyCard
+            front={session.currentFamily.front}
+            topicName={nodes.find((n) => n.id === session.currentFamily?.nodeId)?.name}
+            cards={session.currentFamily.cards}
+            gradedCards={session.gradedInFamily}
+            onRateCard={session.rateFamilyCard}
+            onNextFamily={() => void session.nextFamily()}
+          />
+        </div>
+      ) : (
+        <>
+          <div className="study-stage">
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={`${current?.id ?? 'card'}-${session.position}`}
+                className="study-slot"
+                initial={{ x: slide, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: -slide, opacity: 0 }}
+                transition={{ type: 'spring', stiffness: 260, damping: 26 }}
+              >
+                {current && (
+                  <StudyCard
+                    front={current.front}
+                    back={current.back}
+                    explanation={current.explanation}
+                    topicName={topicName}
+                    labelTag={labelTag}
+                    flipped={session.flipped}
+                    wrong={session.wrongFeedback}
+                    onFlip={session.flip}
+                  />
+                )}
+              </motion.div>
+            </AnimatePresence>
+          </div>
 
-      <div className="study-rating">
-        <WifiRating enabled={session.revealed && !session.submitting && session.hydrated} onRate={(rating) => void session.rate(rating)} />
-      </div>
+          <div className="study-rating">
+            <WifiRating enabled={session.revealed && !session.submitting && session.hydrated} onRate={(rating) => void session.rate(rating)} />
+          </div>
+        </>
+      )}
 
       {settings.showMnemoInSession !== false && (
         <MnemoCompanion

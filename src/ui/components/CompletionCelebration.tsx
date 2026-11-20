@@ -1,4 +1,5 @@
 import { useEffect, useId, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Mnemo } from './Mnemo';
 
 type CompletionCelebrationProps = {
@@ -59,7 +60,7 @@ export function CompletionCelebration({
     return () => cancelAnimationFrame(animId);
   }, [oldStreak, newStreak]);
 
-  return (
+  const content = (
     <div className="celebration-overlay" role="dialog" aria-modal="true" aria-label="Streak celebration">
       <div className="celebration-card">
         <div className="celebration-confetti-container" aria-hidden="true">
@@ -119,4 +120,8 @@ export function CompletionCelebration({
       </div>
     </div>
   );
+
+  const mountTarget = (typeof document !== 'undefined' ? document.querySelector('.app-frame') : null) ?? (typeof document !== 'undefined' ? document.body : null);
+  if (!mountTarget) return content;
+  return createPortal(content, mountTarget);
 }

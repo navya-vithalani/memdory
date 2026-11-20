@@ -1,5 +1,5 @@
-.app-frame > .celebration-overlay { /* `.app-frame > *` would otherwise force position: relative */
-  position: fixed;
+.celebration-overlay {
+  position: absolute;
   inset: 0;
   z-index: 1000;
   display: flex;

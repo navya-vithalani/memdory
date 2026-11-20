@@ -20,6 +20,7 @@ export type HomeSnapshot = {
   dailyGoal: number;
   dueCards: number;
   atRiskCards: number;
+  masteredCards: number;
   areas: Array<{ node: TreeNode; mastery: number }>;
   weakestTopic: { node: TreeNode; recall: number } | null;
   lastSession: SessionRecord | null;
@@ -78,6 +79,7 @@ async function loadSnapshot(settings: SettingsRecord, nodes: TreeNode[]): Promis
     dailyGoal: settings.dailyGoal,
     dueCards: cards.filter((card) => card.lastReview != null && (card.due ?? 0) <= now).length,
     atRiskCards: cards.filter((card) => card.lastReview != null && (Boolean(card.trap) || getRecallProbability(card, now) <= AT_RISK_RECALL)).length,
+    masteredCards: cards.filter((card) => card.lastReview != null && !card.trap && ((card.stability ?? 0) >= 21 || (getRecallProbability(card, now) >= 0.9 && (card.reps ?? 0) >= 2))).length,
     areas,
     weakestTopic,
     lastSession,

@@ -30,4 +30,33 @@
   --radius-large: 28px;
   --screen-padding: 16px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
+
+  /* Note colour palette (5.2) */
+  --note-indigo-bg: #eef0ff;
+  --note-indigo-accent: #4547d6;
+  --note-indigo-ink: #141a4d;
+
+  --note-sky-bg: #e0f2fe;
+  --note-sky-accent: #0284c7;
+  --note-sky-ink: #082f49;
+
+  --note-mint-bg: #e6fcf5;
+  --note-mint-accent: #0ca678;
+  --note-mint-ink: #084c36;
+
+  --note-sun-bg: #fff9db;
+  --note-sun-accent: #f59f00;
+  --note-sun-ink: #493800;
+
+  --note-rose-bg: #ffe3e3;
+  --note-rose-accent: #e03131;
+  --note-rose-ink: #491212;
+
+  --note-violet-bg: #f3f0ff;
+  --note-violet-accent: #7950f2;
+  --note-violet-ink: #2b114c;
+
+  --note-slate-bg: #f1f3f5;
+  --note-slate-accent: #495057;
+  --note-slate-ink: #212529;
 }

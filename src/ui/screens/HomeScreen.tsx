@@ -154,8 +154,8 @@ export function HomeScreen() {
         <StatCard label="Due today" value={`${snapshot?.dueCards ?? 0}`} tone="indigo" />
         <StatCard label="At risk" value={`${snapshot?.atRiskCards ?? 0}`} tone="mint" />
         <StatCard
-          label="Best streak"
-          value={`${snapshot?.longestStreak ?? 0} days`}
+          label="Mastered"
+          value={`${snapshot?.masteredCards ?? 0}`}
           tone="orange"
         />
       </section>

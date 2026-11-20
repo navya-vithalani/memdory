@@ -12,7 +12,7 @@ import type {
   TreeNode
 } from '../types';
 
-export class MomdoryDb extends Dexie {
+export class memdoryDb extends Dexie {
   nodes!: Table<TreeNode, string>;
   notes!: Table<NoteRecord, string>;
   cards!: Table<CardRecord, string>;
@@ -23,7 +23,7 @@ export class MomdoryDb extends Dexie {
   imports!: Table<ImportRecord, string>;
   settings!: Table<SettingsRecord, string>;
 
-  constructor(databaseName = 'momdory-db') {
+  constructor(databaseName = 'memdory-db') {
     super(databaseName);
     this.version(1).stores({
       nodes: 'id, parentId, createdAt',
@@ -189,7 +189,7 @@ export class MomdoryDb extends Dexie {
   }
 }
 
-export const db = new MomdoryDb();
+export const db = new memdoryDb();
 
 if (typeof window !== 'undefined') {
   db.on('versionchange', () => {

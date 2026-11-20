@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { TreeNode } from '../../types';
 import { NodeSelect } from './NodeSelect';
 import { Mnemo } from './Mnemo';
@@ -77,9 +78,9 @@ export function ImportModal({ nodes, defaultNodeId, onClose, onImported }: Impor
   const hasBlockingErrors = preview ? preview.errors.length > 0 && preview.parsed.totalItems === 0 : false;
   const totalItemsToImport = preview ? preview.counts.cards + preview.counts.notes + preview.counts.updated : 0;
 
-  return (
+  const content = (
     <div
-      className="modal-backdrop"
+      className="import-modal-backdrop"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}
@@ -254,4 +255,8 @@ export function ImportModal({ nodes, defaultNodeId, onClose, onImported }: Impor
       </section>
     </div>
   );
+
+  const mountTarget = (typeof document !== 'undefined' ? document.querySelector('.app-frame') : null) ?? (typeof document !== 'undefined' ? document.body : null);
+  if (!mountTarget) return content;
+  return createPortal(content, mountTarget);
 }

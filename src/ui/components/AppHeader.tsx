@@ -35,7 +35,7 @@ export function AppHeader({ onMenu, menuOpen }: AppHeaderProps) {
         <span />
       </button>
       <h1 className="header-title">{title}</h1>
-      <Link to="/profile" className="header-brand-group" aria-label="Open profile">
+      <Link to="/settings" className="header-brand-group" aria-label="Open settings">
         <Mnemo mood="happy" className="header-mascot" />
         <span className="header-brand-name">{APP_NAME}</span>
       </Link>

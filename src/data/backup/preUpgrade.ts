@@ -2,7 +2,7 @@ import Dexie from 'dexie';
 
 export async function checkAndRunPreUpgradeSafetyBackup(): Promise<boolean> {
   if (typeof window === 'undefined') return false;
-  const dbNames = ['momdory-db', 'memdory-db', 'remembree-db'];
+  const dbNames = ['memdory-db', 'memdory-db', 'remembree-db'];
   let targetDbName: string | null = null;
 
   for (const name of dbNames) {
@@ -27,7 +27,7 @@ export async function checkAndRunPreUpgradeSafetyBackup(): Promise<boolean> {
     }
 
     const payload: Record<string, unknown> = {
-      app: 'momdory',
+      app: 'memdory',
       exportedAt: Date.now(),
       schemaVersion: rawDb.verno,
       tables: {}
@@ -42,7 +42,7 @@ export async function checkAndRunPreUpgradeSafetyBackup(): Promise<boolean> {
     rawDb.close();
 
     const todayStr = new Date().toISOString().slice(0, 10);
-    const fileName = `momdory-pre-upgrade-${todayStr}.json`;
+    const fileName = `memdory-pre-upgrade-${todayStr}.json`;
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');

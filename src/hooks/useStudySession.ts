@@ -1,5 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { getStreakCelebration, type StreakCelebration } from '../core/streak/streak';
+import { deriveCardFamilies, type CardFamilyGroup } from '../core/session/familyCards';
+import { db } from '../data/db';
 import type { CardRecord, ReviewRating } from '../types';
 import { useCards } from './useCards';
 import { useSettings } from './useSettings';
@@ -33,12 +35,30 @@ export function useStudySession({ sessionId, cards, initialPosition }: Options) 
   const [error, setError] = useState('');
   const [ratingEvent, setRatingEvent] = useState<RatingEvent | null>(null);
   const [clock, setClock] = useState(Date.now());
+  const [viewMode, setViewMode] = useState<'cards' | 'families'>('cards');
+  const [familyIndex, setFamilyIndex] = useState(0);
+  const [gradedInFamily, setGradedInFamily] = useState<Map<string, ReviewRating>>(new Map());
 
   const requeuedWrong = useRef(new Set<string>());
   const cardStartedAt = useRef(Date.now());
   const sittingStartedAt = useRef(Date.now());
   const eventCounter = useRef(0);
   const current = queue[position];
+
+  useEffect(() => {
+    void db.sessions.get(sessionId).then((s) => {
+      if (s?.viewMode === 'families') {
+        setViewMode('families');
+      }
+    });
+  }, [sessionId]);
+
+  const familyGroups = useMemo<CardFamilyGroup[]>(() => {
+    if (viewMode !== 'families') return [];
+    return deriveCardFamilies(queue);
+  }, [queue, viewMode]);
+
+  const currentFamily = familyGroups[familyIndex] ?? null;
 
   useEffect(() => {
     const timer = window.setInterval(() => setClock(Date.now()), 1000);
@@ -136,6 +156,30 @@ export function useStudySession({ sessionId, cards, initialPosition }: Options) 
     }
   }, [completed, correct, current, finishSession, hydrated, position, queue, review, revealed, saveProgress, sessionId, submitting]);
 
+  const rateFamilyCard = useCallback(async (card: CardRecord, rating: ReviewRating) => {
+    eventCounter.current += 1;
+    setRatingEvent({ rating, id: eventCounter.current });
+    try {
+      await review(card, sessionId, rating, 1000, 'family');
+      setGradedInFamily((prev) => new Map(prev).set(card.id, rating));
+      setCompleted((c) => c + 1);
+      if (POSITIVE.includes(rating)) {
+        setCorrect((c) => c + 1);
+      }
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'Could not save review.');
+    }
+  }, [review, sessionId]);
+
+  const nextFamily = useCallback(async () => {
+    if (familyIndex + 1 >= familyGroups.length) {
+      await finishSession(completed);
+    } else {
+      setFamilyIndex((i) => i + 1);
+      setGradedInFamily(new Map());
+    }
+  }, [familyIndex, familyGroups.length, finishSession, completed]);
+
   return {
     queue,
     position,
@@ -147,13 +191,20 @@ export function useStudySession({ sessionId, cards, initialPosition }: Options) 
     submitting,
     hydrated,
     wrongFeedback,
-    finished: finished || !current,
+    finished: viewMode === 'families' ? (familyGroups.length > 0 && familyIndex >= familyGroups.length) || finished : finished || !current,
     celebration,
     dismissCelebration: () => setCelebration(null),
     error,
     ratingEvent,
     completed,
     correct,
-    elapsedSeconds: Math.max(0, Math.floor((clock - sittingStartedAt.current) / 1000))
+    elapsedSeconds: Math.max(0, Math.floor((clock - sittingStartedAt.current) / 1000)),
+    viewMode,
+    currentFamily,
+    familyGroups,
+    familyIndex,
+    gradedInFamily,
+    rateFamilyCard,
+    nextFamily
   };
 }

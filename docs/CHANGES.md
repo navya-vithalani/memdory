@@ -354,7 +354,7 @@ Migration (4.2) with `fake-indexeddb`; importer: paths, relative mode, tags with
 
 #### What changed
 
-1. **Rebranding to `momdory`**:
+1. **Rebranding to `memdory`**:
    - Updated the app name across UI components, `index.html`, `src/constants.ts`, `package.json`, `vite.config.ts`, `README.md`, and PWA manifests.
 
 2. **Database v4 Schema & Migration (`src/data/db.ts`)**:
@@ -388,7 +388,7 @@ Migration (4.2) with `fake-indexeddb`; importer: paths, relative mode, tags with
    - **App Drawer Menu with Ocean Wave Art (`AppMenu.tsx`, `app-menu.css`)**: Replaced the big text header with an animated ocean-wave header where Mnemo swims gently across layered blue waves.
    - **3D Tactile Wi-Fi Rating Button (`WifiRating.tsx`, `wifi-rating.css`)**: Widened to 390px with tactile mechanical push caps, shaded bevels, and realistic button depression.
    - **Home Screen Remodel (`HomeScreen.tsx`, `home-screen.css`)**: Replaced the redundant blue hero start-session button with a mascot speech bubble showing ranked analysis insights, and added a quick Import button.
-   - **Header Screen Titles (`AppHeader.tsx`, `app-header.css`)**: Thickened header to host centered screen titles (Home, Notes, Cards, Analysis, Profile, Settings) and tiny `momdory` branding under Mnemo; eliminated duplicate screen taglines.
+   - **Header Screen Titles (`AppHeader.tsx`, `app-header.css`)**: Thickened header to host centered screen titles (Home, Notes, Cards, Analysis, Profile, Settings) and tiny `memdory` branding under Mnemo; eliminated duplicate screen taglines.
    - **Full-Fill Streak Droplets (`WeeklyStreak.tsx`, `weekly-streak.css`)**: Replaced circular droplet clip with a full teardrop path so that streak droplets fill completely to the tip.
 
 9. **Verification & Tests**:
@@ -440,14 +440,68 @@ One highlighted box with up to three faces: **Cue**, **Meaning**, **Story** (onl
 - Reduced motion: 200ms cross-fade. A small label ("Meaning", "Story") fades in above the text in `--indigo`.
 
 ### Style checklist (Phase 5)
-- [ ] Each type is visibly different; colours come from palette tokens; works in dark mode
-- [ ] Long-press menu works on touch and does not scroll the page
-- [ ] Table scrolls horizontally with sticky first column; LaTeX renders offline
-- [ ] Morph feels like text transforming in place, not a card sliding
+- [x] Each type is visibly different; colours come from palette tokens; works in dark mode
+- [x] Long-press menu works on touch and does not scroll the page
+- [x] Table scrolls horizontally with sticky first column; LaTeX renders offline
+- [x] Morph feels like text transforming in place, not a card sliding
 
 ---
 
-## Phase 6: Browse cards, tags in analysis, Nemo summary
+### Phase 5 review
+
+#### What changed
+
+1. **Phase 5 Note Types & Looks (`src/ui/components/notes/`)**:
+   - `NormalNote`: Markdown and LaTeX text with clean typography and spacing.
+   - `ConceptNote`: Interactive toggle block with title and rotating chevron, smooth height animation expanding the explanation body.
+   - `FormulaNote`: Highlighted display card centering KaTeX equations with optional caption.
+   - `MnemonicNote`: Memory box implementing the complete 5.8 morph recipe:
+     - 3-dot indicator with labels ("Cue", "Meaning", "Story").
+     - Box stays pinned (elastic hint of at most 8px, springing back).
+     - Morphing staggered word-token animations (blur + opacity transitions).
+     - Swipe, double-tap, or button navigation.
+     - Optional "Expand full" toggle to reflow adjacent tiles.
+   - `TrickNote`: Callout card with gold accent bar and lightning bolt icon (`⚡`).
+   - `TableNote`: Horizontally scrollable container with sticky first column, collapsible columns on header tap, and row highlight.
+
+2. **Note Color Palette Tokens (`tokens.css`, `themes.css`)**:
+   - Added palette variables for all 7 colors (`indigo`, `sky`, `mint`, `sun`, `rose`, `violet`, `slate`) with `--note-<name>-bg`, `--note-<name>-accent`, and `--note-<name>-ink`.
+   - Complete dark theme overrides in `themes.css`.
+   - Default colors automatically assigned by note type: concept (indigo), formula (sky), mnemonic (violet), trick (sun), table (mint).
+
+3. **Two-Column Note Grid & Layout (5.4)**:
+   - Preserves note order without dense reordering.
+   - Default widths: `mnemonic`, `trick`, `formula` = half width; `normal`, `concept`, `table` = full width.
+   - Expanded mnemonic takes full width and reflows neighboring notes below it.
+
+4. **Table of Contents & Filter Bar (5.5, 5.7)**:
+   - Dynamic chip bar listing notes by title (auto-labelling untitled notes as "Formula 1", "Trick 2", etc.).
+   - Tapping scrolls smoothly to the note with a brief highlight pulse.
+   - Filter strip supports: "All", "★ Starred", type chips, and tag filter pills.
+   - Search input covering title, body, cue, meaning, story, and tags.
+
+5. **Long-Press & Action Menu (5.3, `NoteMenuModal.tsx`)**:
+   - Opens on touch long-press (500ms with haptic vibration without scrolling) or menu button.
+   - Direct color swatches, Bold toggle, Text size selector (S, M, L), Font selector (Sans, Mono, Serif), Star toggle, Edit, Move up, Move down, and Delete confirmation.
+
+6. **Order Management & Note Repository (`noteRepository.ts`)**:
+   - Sequential `order` indexing per note within each topic.
+   - Added `moveNote(nodeId, noteId, direction)` to reorder notes in a single transaction.
+   - Added unit test suite in `src/data/__tests__/noteRepository.test.ts`.
+
+7. **User-Requested Fixes & Refinements**:
+   - **Import Dialogue Box**: Portaled directly to `.app-frame` with `position: absolute; inset: 0; z-index: 600` and hidden tab-bar so it never falls behind the navigation bar.
+   - **Manual Add Popups**: Updated `ManualCardModal` with front, back, explanation, tags, two-way option, and star; updated note editor with dynamic type fields and live preview.
+   - **Header Right Icon**: Now opens Settings (`/settings`).
+   - **Study Screen Mnemo Liveliness**: Added organic swimming drift, periodic expression cycling (curious, happy, observing, sleepy if idle > 25s), water bubbles, and tap somersault flip.
+   - **Family Mode & Spaced Queue**: Added `Single cards | Families` switch in `SessionSetupModal` (disabled/grayed out if no card families exist in the scope), family multi-select or all-families selector, `spreadFamilies` (keeping members >= 5 positions apart in single mode), and `FamilyStudyCard` with Got it / Blank / Wrong grading.
+   - **Mastered Cards Stat**: Replaced "Best streak" on Home with a "Mastered" card counter.
+   - **Streak Celebration Overlay**: Fixed selector and portaled overlay to `.app-frame` so it renders properly without blanking out the screen.
+   - **Branding**: Verified `memdory` branding across all files.
+
+---
+
+## Phase 6: Browse cards, tags in analysis, Mnemo summary
 
 ### 6.1 Browse cards (`/cards/browse`)
 - Top stat strip: **Total · Due · Fading · Traps**. *Due* = `due ≤ now`; *Fading* = reviewed and recall < 0.8; *Traps* = flagged by Wrong.

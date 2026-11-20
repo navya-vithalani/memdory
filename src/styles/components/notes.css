@@ -1,0 +1,463 @@
+/* Phase 5 Notes styling following design tokens */
+.notes-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+/* Table of Contents & filter chip bar */
+.notes-toc-bar {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 2px 10px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.notes-toc-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.notes-toc-chip {
+  flex: 0 0 auto;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.notes-toc-chip:hover,
+.notes-toc-chip:active {
+  background: var(--indigo-tint);
+  border-color: var(--indigo);
+}
+.notes-toc-chip.active {
+  background: var(--indigo);
+  color: #fff;
+  border-color: var(--indigo);
+}
+
+/* Filter strip below TOC */
+.notes-filters-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+}
+
+.notes-filter-pill {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink-soft);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.notes-filter-pill.active {
+  background: var(--indigo-tint);
+  color: var(--indigo);
+  border-color: var(--indigo);
+}
+
+/* Search bar */
+.notes-search-box {
+  width: 100%;
+  position: relative;
+}
+.notes-search-input {
+  width: 100%;
+  height: 42px;
+  padding: 0 16px 0 38px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+.notes-search-input:focus {
+  border-color: var(--indigo);
+}
+.notes-search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  stroke: var(--ink-soft);
+  pointer-events: none;
+}
+
+/* Two-column note grid preserving order */
+.notes-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+
+@media (max-width: 440px) {
+  .notes-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Grid span classes */
+.note-span-full {
+  grid-column: 1 / -1;
+}
+.note-span-half {
+  grid-column: span 1;
+}
+
+@media (max-width: 440px) {
+  .note-span-half {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Base note card */
+.note-card {
+  position: relative;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  padding: 16px;
+  box-shadow: 0 4px 16px var(--shadow-soft);
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: pan-y;
+}
+
+.note-card:hover {
+  box-shadow: 0 8px 24px var(--shadow-card);
+}
+
+.note-card.highlight-pulse {
+  animation: noteHighlightPulse 1.8s ease-out;
+}
+
+@keyframes noteHighlightPulse {
+  0% {
+    box-shadow: 0 0 0 4px var(--indigo);
+  }
+  100% {
+    box-shadow: 0 4px 16px var(--shadow-soft);
+  }
+}
+
+/* Colour variants using palette tokens (5.2) */
+.note-color-indigo {
+  background: var(--note-indigo-bg);
+  border-color: var(--note-indigo-accent);
+  color: var(--note-indigo-ink);
+}
+.note-color-sky {
+  background: var(--note-sky-bg);
+  border-color: var(--note-sky-accent);
+  color: var(--note-sky-ink);
+}
+.note-color-mint {
+  background: var(--note-mint-bg);
+  border-color: var(--note-mint-accent);
+  color: var(--note-mint-ink);
+}
+.note-color-sun {
+  background: var(--note-sun-bg);
+  border-color: var(--note-sun-accent);
+  color: var(--note-sun-ink);
+}
+.note-color-rose {
+  background: var(--note-rose-bg);
+  border-color: var(--note-rose-accent);
+  color: var(--note-rose-ink);
+}
+.note-color-violet {
+  background: var(--note-violet-bg);
+  border-color: var(--note-violet-accent);
+  color: var(--note-violet-ink);
+}
+.note-color-slate {
+  background: var(--note-slate-bg);
+  border-color: var(--note-slate-accent);
+  color: var(--note-slate-ink);
+}
+
+/* Style variants: Font, Size, Bold */
+.note-font-mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+.note-font-serif {
+  font-family: Georgia, 'Times New Roman', serif;
+}
+.note-font-sans {
+  font-family: inherit;
+}
+.note-size-sm {
+  font-size: 13px;
+}
+.note-size-md {
+  font-size: 15px;
+}
+.note-size-lg {
+  font-size: 17px;
+}
+.note-bold {
+  font-weight: 700;
+}
+
+/* Note header */
+.note-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  gap: 8px;
+}
+.note-card-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--ink);
+  margin: 0;
+  line-height: 1.3;
+}
+.note-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+}
+.note-star-btn {
+  background: none;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+}
+
+/* Note tags */
+.note-tags-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+.note-tag-chip {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--indigo-tint);
+  color: var(--indigo);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* Note Types Specifics */
+/* 1. Concept: Toggle block */
+.note-concept-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+}
+.note-concept-chevron {
+  font-size: 13px;
+  color: var(--indigo);
+  transition: transform 0.2s ease;
+}
+.note-concept-chevron.open {
+  transform: rotate(90deg);
+}
+.note-concept-body {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+}
+
+/* 2. Formula: Highlighted centered box */
+.note-formula-card {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 20px 16px;
+}
+.note-formula-body {
+  font-size: 18px;
+  margin: 8px 0;
+}
+.note-formula-caption {
+  font-size: 12px;
+  color: var(--ink-soft);
+  font-weight: 700;
+}
+
+/* 3. Trick: Callout with lightning glyph */
+.note-trick-card {
+  border-left: 4px solid var(--note-sun-accent);
+}
+.note-trick-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--note-sun-accent);
+  margin-bottom: 6px;
+}
+
+/* 4. Table: horizontally scrollable with sticky first col */
+.note-table-container {
+  overflow-x: auto;
+  margin: 8px 0;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+}
+.note-table-container table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.note-table-container th,
+.note-table-container td {
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  white-space: nowrap;
+}
+.note-table-container th {
+  background: var(--indigo-tint);
+  font-weight: 800;
+  cursor: pointer;
+}
+.note-table-container th:first-child,
+.note-table-container td:first-child {
+  position: sticky;
+  left: 0;
+  background: var(--surface);
+  z-index: 2;
+  font-weight: 700;
+}
+.note-table-container tr:hover td {
+  background: var(--indigo-tint);
+}
+
+/* 5. Mnemonic: Memory box morph recipe (5.8) */
+.mnemonic-box {
+  position: relative;
+  border-radius: var(--radius-card);
+  padding: 16px;
+  overflow: hidden;
+}
+.mnemonic-indicator {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.mnemonic-dot-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+.mnemonic-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--line);
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+.mnemonic-dot-btn.active .mnemonic-dot {
+  background: var(--indigo);
+  transform: scale(1.4);
+}
+.mnemonic-dot-btn.active {
+  color: var(--indigo);
+}
+
+.mnemonic-face-content {
+  min-height: 56px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.mnemonic-nav-row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--line);
+}
+.mnemonic-nav-btn {
+  background: none;
+  border: none;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--indigo);
+  cursor: pointer;
+}
+
+/* Note Action Sheet / Long-press menu (5.3) */
+.note-menu-sheet {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--surface);
+  border-radius: var(--radius-large) var(--radius-large) 0 0;
+  padding: 20px;
+  z-index: 600;
+  box-shadow: 0 -8px 30px var(--shadow-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.note-color-swatches {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 0;
+}
+.note-swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+}
+.note-swatch.active {
+  border-color: var(--navy);
+  transform: scale(1.15);
+}

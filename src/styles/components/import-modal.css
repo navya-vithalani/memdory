@@ -1,18 +1,30 @@
 /* Bottom-sheet import modal following design tokens */
+.import-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 600;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
 .import-modal-sheet {
-  position: fixed;
+  position: absolute;
   bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
+  right: 0;
   width: 100%;
   max-width: 480px;
-  max-height: 85dvh;
+  max-height: 85%;
+  margin: 0 auto;
   overflow-y: auto;
   background: var(--surface);
   border-radius: var(--radius-large) var(--radius-large) 0 0;
   padding: 20px 20px calc(var(--safe-bottom) + 20px);
   box-shadow: 0 -8px 32px var(--shadow-soft);
-  z-index: 999;
+  z-index: 601;
 }
 
 .import-modal-header {

@@ -7,6 +7,9 @@ export interface CreateSessionParams {
   mode: StudyMode;
   plannedCount: number;
   queueCardIds: string[];
+  viewMode?: 'cards' | 'families';
+  tagFilter?: string[];
+  scopeName?: string;
 }
 
 export async function createSession(
@@ -32,7 +35,10 @@ export async function createSession(
     startedAt: now,
     endedAt: now,
     scopeNodeId: params.scopeNodeId,
+    scopeName: params.scopeName,
     mode: params.mode,
+    viewMode: params.viewMode ?? 'cards',
+    tagFilter: params.tagFilter ?? [],
     plannedCount: params.plannedCount,
     completedCount: 0,
     status: 'in-progress',

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import 'fake-indexeddb/auto';
-import { MomdoryDb } from '../db';
+import { memdoryDb } from '../db';
 import { previewImportFile, applyImport, undoImport } from '../repositories/importRepository';
 
 describe('import repository transactional apply and undo', () => {

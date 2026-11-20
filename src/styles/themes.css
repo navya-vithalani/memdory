@@ -13,4 +13,33 @@
   --drop-water: #6a96ff;
   --drop-water-deep: #4a7bf7;
   --drop-missed: #4b5390;
+
+  /* Note colour palette - Dark (5.2) */
+  --note-indigo-bg: rgba(69, 71, 214, 0.22);
+  --note-indigo-accent: #8c94ff;
+  --note-indigo-ink: #edeeff;
+
+  --note-sky-bg: rgba(2, 132, 199, 0.22);
+  --note-sky-accent: #38bdf8;
+  --note-sky-ink: #f0f9ff;
+
+  --note-mint-bg: rgba(12, 166, 120, 0.22);
+  --note-mint-accent: #38d9a9;
+  --note-mint-ink: #e6fcf5;
+
+  --note-sun-bg: rgba(245, 159, 0, 0.22);
+  --note-sun-accent: #fcc419;
+  --note-sun-ink: #fff9db;
+
+  --note-rose-bg: rgba(224, 49, 49, 0.22);
+  --note-rose-accent: #ff8787;
+  --note-rose-ink: #ffe3e3;
+
+  --note-violet-bg: rgba(121, 80, 242, 0.22);
+  --note-violet-accent: #b197fc;
+  --note-violet-ink: #f3f0ff;
+
+  --note-slate-bg: rgba(73, 80, 87, 0.25);
+  --note-slate-accent: #adb5bd;
+  --note-slate-ink: #f8f9fa;
 }

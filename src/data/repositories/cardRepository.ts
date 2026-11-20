@@ -244,7 +244,8 @@ export async function saveReview(
   durationMs: number,
   timestamp: number,
   updatedCard?: CardRecord,
-  reviewItemId?: string
+  reviewItemId?: string,
+  studyMode: 'single' | 'family' = 'single'
 ): Promise<void> {
   await db.transaction('rw', db.cards, db.reviewItems, db.reviews, db.settings, async () => {
     const settings = await db.settings.get('settings');
@@ -274,7 +275,7 @@ export async function saveReview(
         durationMs,
         timestamp,
         dayKey,
-        studyMode: 'single'
+        studyMode
       });
     }
 

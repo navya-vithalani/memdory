@@ -33,7 +33,7 @@ export async function createBackup(): Promise<BackupPayload> {
   }
 
   return {
-    app: 'momdory',
+    app: 'memdory',
     appVersion: APP_VERSION,
     schemaVersion: 4,
     exportedAt: new Date().toISOString(),
