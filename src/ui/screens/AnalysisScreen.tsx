@@ -32,12 +32,6 @@ export function AnalysisScreen() {
 
   return (
     <main className="screen analysis-screen">
-      <header className="screen-intro analysis-intro">
-        <p className="eyebrow">Your progress, at a glance</p>
-        <h1>Study insights</h1>
-        <p className="muted">Every little session matters.</p>
-        <Mnemo mood="excited" className="screen-mascot analysis-mascot" />
-      </header>
       {error && <p className="error-message" role="alert">{error}</p>}
       <section className="analysis-hero-stats">
         <div><span className="analysis-stat-icon" aria-hidden="true">✦</span><strong>{snapshot.totalReviews}</strong><small>total reviews</small></div>

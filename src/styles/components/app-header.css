@@ -1,12 +1,15 @@
 .app-header {
   display: grid;
   flex: 0 0 auto;
-  grid-template-columns: 44px 1fr 44px;
+  grid-template-columns: 44px 1fr 54px;
   align-items: center;
-  padding: calc(env(safe-area-inset-top, 0px) + 8px) 12px 8px;
+  min-height: 56px;
+  padding: calc(env(safe-area-inset-top, 0px) + 8px) 14px 8px;
   border-bottom: 1px solid var(--line);
-  background: color-mix(in srgb, var(--surface) 84%, transparent);
+  background: color-mix(in srgb, var(--surface) 86%, transparent);
   backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  z-index: 50;
 }
 
 .header-menu {
@@ -20,6 +23,8 @@
   height: 44px;
   border-radius: 14px;
   background: none;
+  border: none;
+  cursor: pointer;
   transition: background var(--motion-fast) ease;
 }
 .header-menu span { display: block; width: 20px; height: 2.5px; border-radius: 999px; background: var(--ink); transition: transform var(--motion-fast) ease, opacity var(--motion-fast) ease; }
@@ -31,14 +36,42 @@
 
 .header-title {
   justify-self: center;
+  margin: 0;
   color: var(--navy);
-  font-size: 19px;
+  font-size: 18px;
   font-weight: 800;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.02em;
+  text-align: center;
 }
 
-.header-mnemo { display: grid; justify-self: end; width: 44px; height: 44px; place-items: center; }
-.header-mnemo .mnemo { width: 44px; height: 35px; animation: header-swim 5s ease-in-out infinite; }
+.header-brand-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.header-brand-group .header-mascot {
+  width: 32px;
+  height: 25px;
+  display: grid;
+  place-items: center;
+  animation: header-swim 5s ease-in-out infinite;
+}
+
+.header-brand-group .mnemo svg {
+  width: 32px;
+  height: 25px;
+}
+
+.header-brand-name {
+  font-size: 9.5px;
+  font-weight: 800;
+  color: var(--ink-soft);
+  letter-spacing: 0.02em;
+  margin-top: -1px;
+}
 
 @keyframes header-swim {
   0%, 100% { transform: translate(0, 0) rotate(0deg); }
@@ -48,5 +81,5 @@
 [data-theme='dark'] .header-title { color: var(--ink); }
 
 @media (prefers-reduced-motion: reduce) {
-  .header-mnemo .mnemo { animation: none; }
+  .header-brand-group .header-mascot { animation: none; }
 }

@@ -4,7 +4,7 @@ import type { NoteRecord } from '../../types';
 
 export async function listNotes(nodeId: string): Promise<NoteRecord[]> {
   const notes = await db.notes.where('nodeId').equals(nodeId).toArray();
-  return notes.sort((a, b) => b.updatedAt - a.updatedAt);
+  return notes.sort((a, b) => (b.updatedAt ?? b.createdAt) - (a.updatedAt ?? a.createdAt));
 }
 
 export async function createNoteFromFile(nodeId: string, fileName: string, source: string): Promise<NoteRecord> {
@@ -12,8 +12,17 @@ export async function createNoteFromFile(nodeId: string, fileName: string, sourc
   const note: NoteRecord = {
     id: crypto.randomUUID(),
     nodeId,
+    type: 'normal',
     title: parseNoteTitle(fileName, source),
     body: parseNoteBody(source),
+    data: null,
+    tagIds: [],
+    color: null,
+    style: null,
+    starred: false,
+    order: 0,
+    sourceKey: null,
+    importId: null,
     createdAt: now,
     updatedAt: now
   };
@@ -56,8 +65,17 @@ export async function importNotesFromMarkdown(nodeId: string, fileName: string, 
       const note: NoteRecord = {
         id: crypto.randomUUID(),
         nodeId: targetNodeId,
+        type: 'normal',
         title: title.trim() || 'Untitled note',
         body: body.trim(),
+        data: null,
+        tagIds: [],
+        color: null,
+        style: null,
+        starred: false,
+        order: 0,
+        sourceKey: null,
+        importId: null,
         createdAt: now,
         updatedAt: now
       };
@@ -99,8 +117,17 @@ export async function createNote(nodeId: string, title: string, body: string): P
   const note: NoteRecord = {
     id: crypto.randomUUID(),
     nodeId,
+    type: 'normal',
     title: cleanTitle,
     body: body.trim(),
+    data: null,
+    tagIds: [],
+    color: null,
+    style: null,
+    starred: false,
+    order: 0,
+    sourceKey: null,
+    importId: null,
     createdAt: now,
     updatedAt: now
   };

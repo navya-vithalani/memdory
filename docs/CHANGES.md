@@ -237,104 +237,213 @@ Mnemo's front artwork is the existing asset; the blink and bob are the existing 
 
 ---
 
-## Phase 4: Data model and import v2
+## Phase 4: Database v3, import/export, card upgrades
 
-### 4.1 Schema changes (new Dexie versions)
-- `tags`: `{id, name (unique, stored lowercase), createdAt}`; colour is derived from a hash of the name over 6 indigo/cyan-family tokens (never orange or rating colours).
-- `cards`: add `tagIds: string[]`, `direction: 'one-way' | 'both'`, `pairId: string | null`, `isReverse: boolean`.
-- `notes`: add `type: 'normal' | 'mnemonic' | 'formula' | 'trick'`, `tagIds: string[]`, `cue`, `concept`, `story` (strings, optional). Existing notes → `type: 'normal'`.
-- Index `cards.tagIds` (multiEntry), `notes.tagIds` (multiEntry), `cards.pairId`.
 
-### 4.2 Two-way (reversible) cards
-When `direction = 'both'`, store **two card records**: the primary (`isReverse=false`) and a twin (`isReverse=true`, front/back swapped, same `pairId`). Each has its own FSRS state, so sessions need no scheduler changes. Rules: editing the primary updates the twin; deleting either deletes both; Browse lists only primaries with a ↔ badge; import dedupe ignores twins; session stats count both directions as separate cards.
+### 4.0 Hygiene rules (apply to everything in Phases 4 to 7)
+- Every schema change is a new `db.version(n)` with an `.upgrade()`; never edit old versions. All multi-table writes run in **one transaction**.
+- Store only primary data. Never store derived values (counts, table of contents, streaks, families, layout).
+- IndexedDB cannot index booleans: do not put boolean fields in index strings; filter them in memory.
+- Set `updatedAt` on every edit. Unknown note `type` values and unknown keys in `data`/`style` must be **preserved and rendered safely** (fallback to a plain note), so new types never need a migration.
+- Handle `db.on('versionchange')` (close the connection and reload) so a second open tab cannot block an upgrade.
+- Catch `QuotaExceededError` and show a friendly message; keep `navigator.storage.persist()` on first run.
+- Colours are stored as **palette names**, never hex, so dark mode keeps working.
+- Dependencies allowed: `katex`, `remark-math`, `rehype-katex` (plus mhchem from KaTeX), and dev-only `fake-indexeddb` for migration tests.
 
-### 4.3 Import file format (plain `.txt` or `.md`)
-Line-oriented. A **labelled line starts a field**; text continues on following lines until the next label or blank line. Labels are case-insensitive.
-
-**Path line** (creates/selects the tree location for everything below it):
+### 4.1 Schema (version 3)
 ```
-@ JEE > Chemistry > P-Block > Group 13
+nodes       id, parentId, order, createdAt                    (+ updatedAt field)
+cards       id, nodeId, *tagIds, sourceKey, importId, createdAt, updatedAt
+reviewItems id, cardId, due, [cardId+direction]
+reviews     id, reviewItemId, cardId, sessionId, timestamp, dayKey
+sessions    id, startedAt, endedAt, dayKey, status
+notes       id, nodeId, [nodeId+order], *tagIds, sourceKey, importId, updatedAt
+tags        id, &name
+imports     id, timestamp
+settings    id
 ```
-First segment = **area** (root node); each further segment = child node. Missing nodes are created, existing ones reused (match by trimmed, case-insensitive name under the same parent). A path stays active until the next path line.
+**cards** (content only): `id, nodeId, front, back, explanation: string|null, tagIds: string[] (first tag = the card's label), kind: 'basic', direction: 'one-way'|'both', starred: boolean, paused: boolean, sourceKey: string|null, importId: string|null, createdAt, updatedAt`.
+**reviewItems** (one per direction; all scheduling lives here): `id, cardId, direction: 'forward'|'reverse', due, stability, difficulty, state, reps, lapses, lastReview, trap: boolean, createdAt`.
+**reviews** (append-only log, never edited): `id, reviewItemId, cardId, sessionId, rating: ReviewRating (raw six-way), fsrsRating: 'again'|'hard'|'good'|'easy', fsrsLog: object|null (the ts-fsrs log entry: state, due, stability, difficulty, elapsed_days, scheduled_days), durationMs, timestamp, dayKey: string, studyMode: 'single'|'family'`.
+**sessions**: existing fields plus `dayKey`, `scopeName: string`, `tagFilter: string[]`, `viewMode: 'cards'|'families'`, and `queueItemIds` (reviewItem ids; replaces `queueCardIds`).
+**tags**: `id, name (normalised key: trimmed, lower-case, single spaces; unique index), label (display text, casing of first use), createdAt`.
+**notes**: `id, nodeId, type: string, title: string|null (optional), body: string (Markdown + LaTeX), data: object|null (type-specific, e.g. mnemonic {cue, meaning, story}), tagIds, color: string|null (palette name), style: {bold?, size?: 'sm'|'md'|'lg', font?: 'sans'|'mono'|'serif'}|null, starred, order: number, sourceKey, importId, createdAt, updatedAt`. **No width or layout fields**; layout is decided by the UI per type.
+**imports**: `id, fileName, timestamp, mode: 'paths'|'into-node', counts: {nodes, cards, notes, tags, updated, skipped}, status: 'applied'|'undone'`.
+**settings**: add `desiredRetention` (default 0.9, passed to ts-fsrs as `request_retention`).
+`dayKey` is the study day string (`YYYY-MM-DD`) computed **at write time** with the day-start setting in effect then (default 03:30), so changing the setting or time zone never rewrites past streaks.
 
-**Card block:**
+### 4.2 Migration v2 → v3
+Write `.upgrade()` so that, for every existing record:
+- **cards:** keep the same `id` (so old reviews stay valid). Create content fields with `tagIds: []`, `kind: 'basic'`, `direction: 'one-way'`, `explanation: null`, `starred: false`, `paused: false`, `sourceKey: null`, `importId: null`, `updatedAt = createdAt`. Create one `reviewItems` row (`direction: 'forward'`) holding the old FSRS fields and `trap`. Then remove those scheduling fields from the card.
+- **reviews:** set `reviewItemId` to that card's item, `fsrsRating` from the existing rating map, `fsrsLog: null`, `studyMode: 'single'`, `dayKey` from `timestamp`.
+- **sessions:** `dayKey` from `endedAt` (or `startedAt` if in progress), `scopeName` from the node (or "All topics"), `tagFilter: []`, `viewMode: 'cards'`, convert `queueCardIds` → `queueItemIds`.
+- **notes:** `type: 'normal'`, `data: null`, `tagIds: []`, `color: null`, `style: null`, `starred: false`, `sourceKey/importId: null`, `order` = position by `createdAt` within each node; keep `title`.
+- **nodes:** add `updatedAt = createdAt`.
+Test with `fake-indexeddb`: seed a v2 database with sample data, open v3, assert nothing is lost and every field above is set.
+
+### 4.3 Pre-upgrade safety export
+Before the v3 database is opened, if `Dexie.exists('remembree-db')` and the existing version is below 3, open it dynamically (`new Dexie('remembree-db').open()`), export every table to JSON, trigger a download named `remembree-pre-upgrade-YYYY-MM-DD.json`, close it, then continue. Show a one-time banner: "We saved a safety copy of your data."
+
+### 4.4 Behaviour rules
+- **Two-way cards** (`direction: 'both'`): one `cards` record plus two `reviewItems` (forward and reverse). The reverse item shows the back as the prompt. Editing the card edits both views. Changing `both` → `one-way` removes the reverse item but keeps its reviews.
+- **Session selection** operates on `reviewItems` joined with `cards`; exclude `paused` cards; cards keep their reviews if deleted (hard delete the card and its items; analysis must ignore reviews whose card no longer exists). The daily new-card cap counts reviewItems first reviewed today.
+- **Tags:** the **first tag is the card's label**. Tag names are normalised (4.1). Renaming a tag changes `label`. Deleting a tag removes it from all cards/notes; if it was a card's first tag, the next tag becomes the label. Tag counts per scope are queries on the `*tagIds` index.
+- **Families are derived, not stored:** cards in the same node with the same normalised `front` form a family (`familyKey = nodeId + '|' + normalise(front)`). No group id exists.
+- **Dedupe key** for cards without an `ID:`: `nodeId + normalise(front) + firstTag`; for notes: `nodeId + normalise(title or first line of body)`.
+- **Star and pause** apply to cards (and star to notes). Add a "Starred only" switch to the session setup.
+
+### 4.5 Import file format (`.txt` or `.md`)
+Line-oriented; **labels** start a field (case-insensitive); text continues on following lines until the next label or a blank line (note bodies continue until `---` or the next starter). Block starters: `@`, `Q:`, `NOTE:`.
+
+**Path line** (creates or selects the node; first segment = area, deeper segments = children; existing nodes matched by trimmed, case-insensitive name under the same parent):
 ```
-Q: Why does BF3 act as a Lewis acid?
-A: It is electron deficient: only 6 electrons around boron.
-TAGS: reasons, lewis acids
-TWO-WAY: yes
+@ JEE > Chemistry > P-Block > Group 15
 ```
-`TAGS:` comma-separated, optional. `TWO-WAY: yes` makes it reversible (default no). A card block ends at a blank line or the next `Q:` / `NOTE:` / `@`. Multi-line answers keep their line breaks.
-
-**Note block:**
+**Card:**
 ```
-NOTE: Group 15 hydrides
-TYPE: mnemonic          (normal | mnemonic | formula | trick; default normal)
-TAGS: mnemonics
-CUE: NH3 is Nice, PH3 Plain...
-MEANS: Basicity falls down the group.
-STORY: Nitrogen the neighbour is friendly, phosphorus is polite...
+Q: XeF4
+A: sp3d2, square planar
+WHY: Two lone pairs sit opposite each other.   (optional explanation)
+TAGS: hybridisation, vsepr                      (first = label; optional)
+TWO-WAY: yes                                    (optional, default no)
+STAR: yes                                       (optional)
+ID: vsepr-xef4-hyb                              (optional stable id)
 ```
-For `normal`, `formula` and `trick` use `BODY:` instead of CUE/MEANS (body is Markdown, may contain blank lines, and ends at a line `---` or the next `Q:` / `NOTE:` / `@`). STORY is optional for any type.
+Questions should be very short (a few words) and put the type of question in the first tag. Multi-line answers keep their line breaks.
+**Note:**
+```
+NOTE: Ideal gas equation                        (title; may be left empty)
+TYPE: formula   (normal | concept | formula | mnemonic | trick | table; default normal)
+COLOR: sky      (palette name; optional)
+STAR: yes
+TAGS: gas laws
+ID: gas-ideal
+BODY: $$PV = nRT$$
+```
+Mnemonic notes use `CUE:`, `MEANS:` and optional `STORY:` instead of `BODY:`. Tables use a Markdown table in `BODY:`.
+**Updates:** an item whose `ID:` matches an existing item's `sourceKey` **updates its content** and keeps scheduling and history. Items without a matching ID use the dedupe keys above and are skipped if they exist. The preview shows New / Update / Skipped counts.
+**Modes (chosen in the UI):** (1) *Use the paths in the file*; (2) *Put everything inside the selected node* (paths become relative sub-paths; a file with no paths puts everything in that node). Legacy tab-separated card files are accepted in mode 2 only.
+**Implementation:** pure parser in `core/importers/importParser.ts` returning `{nodesToCreate, cards, notes, tags, updates, skipped, errors: [{line, message}]}`; applying it happens in a repository function inside **one transaction**. Size guard: warn above 5,000 items or 5 MB.
 
-### 4.4 Import scopes and the identification rules
-| File content | How it is identified |
-|---|---|
-| Area / node | `@ path` line; segment position gives depth (1st = area) |
-| Card | block starting `Q:` (needs an `A:`) |
-| Note | block starting `NOTE:` |
-| Tag | `TAGS:` labels; created on first use, shared by cards and notes |
-| Note type | `TYPE:` label |
-| Reversible | `TWO-WAY: yes` |
+### 4.6 Import UI (one flow for menu, Cards ＋ and Notes)
+Bottom sheet in 3 steps: choose file; choose mode (and target node for mode 2); **preview** (counts, collapsible error list with line numbers, "Update items with matching ID" switch, default on). Orange **Import** button disabled while there are blocking errors. Success: toast + Mnemo `excited`; failure: Mnemo `shocked`.
 
-**Two import modes**, chosen in the UI:
-1. **Use the paths in the file** (full import). Items before any path line are an error unless a target node is chosen.
-2. **Put everything inside the selected node.** Path lines (if any) are treated as sub-paths **relative to** the selected node; a file with no path lines puts all cards/notes directly in that node. This is how you import "just a set of cards into this node".
+### 4.7 Import batches and undo
+Every applied import creates an `imports` row and stamps `importId` on the nodes, cards and notes it created. **Settings → Imports** lists them; **Undo** deletes what that batch created (cards with their reviewItems; notes; empty nodes; tags that become unused) and sets `status: 'undone'`. Updates made by a batch are not reverted. Warn when any created card already has review history.
 
-Plain legacy card files (no `@`, only `Q:`/`A:` or tab-separated `front<TAB>back`) are accepted in mode 2 only.
+### 4.8 Export (two kinds, both in Settings and the menu)
+1. **Full backup (`.json`)**: export **every table** by iterating `db.tables` (never a hard-coded list), plus `schemaVersion: 3`, `appVersion` and `exportedAt`. Importing accepts schema versions 1, 2 and 3 and upgrades older payloads to the current shape (same transformations as 4.2). Restore offers **merge** or **replace** with confirmation and shows record counts afterwards. File name `remembree-backup-YYYY-MM-DD.json`; use the Web Share API on mobile when available, else download. Update `lastBackupAt`.
+2. **Content export (`.txt`)**: writes the tree (as `@` paths), cards, notes and tags in the import format of 4.5, **including `ID:` lines** (generate and save a `sourceKey` for any item that lacks one), colours, stars, types and order, but no scheduling or history. Round-trip test: export content, import it into an empty database, and assert nodes, cards, notes, tags and order match.
 
-Duplicates: card = same node + normalised front; note = same node + normalised title → skipped (counted in the preview). Parser is a pure function in `core/importers/importParser.ts` returning `{nodesToCreate, cards, notes, tags, skipped, errors: [{line, message}]}`; applying it to the DB happens in a repository function inside **one Dexie transaction** (all-or-nothing).
+### 4.9 Study screen additions
+- Above the question show a small line with the card's **topic** (its node name, `--ink-soft`, 12px) and, if the card has tags, its **label chip** (first tag). Keep the question itself short and large.
+- Card fronts, backs and explanations render through a shared `RichText` component supporting line breaks and **LaTeX** (`$…$` inline, `$$…$$` display, `\ce{…}` chemistry) via KaTeX, lazy-loaded, fonts self-hosted and precached (extend the workbox glob if needed). If LaTeX fails to parse, show the raw text instead of crashing.
+- The optional explanation appears under the answer after the flip, smaller and in `--ink-soft`.
 
-### 4.4b Import UI (single flow used by the menu, Cards ＋ and Notes)
-Bottom sheet, 3 steps: (1) choose file; (2) choose mode (radio) and target node when needed; (3) **preview**: counts of new nodes / cards / notes / tags / skipped duplicates and a collapsible list of errors with line numbers. Orange **Import N items** button disabled if there are errors in blocking categories. Success: toast and Mnemo `excited`; failure: Mnemo `shocked`.
+### 4.10 Tests (write first where possible)
+Migration (4.2) with `fake-indexeddb`; importer: paths, relative mode, tags with first-tag label, two-way, `ID:` updates versus duplicates, errors with line numbers, rollback on failure; undo of an import; families derived from same node + front; tag rename/delete behaviour; backup round trip including old-version payloads; content export round trip.
 
-### 4.5 Bug fixes folded in
-- Preserve line breaks in answers (join lines with `\n`, render with `white-space: pre-line`). Current parser flattens them.
-- Add a unit test importing `tests/fixtures/cards-group-13-boron-family.txt` (42 cards).
+### Style checklist (Phase 4)
+- [x] Import sheet, preview and Settings → Imports use tokens only; orange only on the Import button
+- [x] Label chip and topic line are small and do not crowd the question
+- [x] No schema change breaks existing data (safety export appears once)
 
-### 4.6 Tests
-Paths create nested nodes; existing paths reused; mode 2 relative paths; tags parsed; `TWO-WAY` creates two records with swapped sides; duplicates skipped; errors report correct line numbers; transaction rolls back on failure.
+---
+
+### Phase 4 review
+
+#### What changed
+
+1. **Rebranding to `momdory`**:
+   - Updated the app name across UI components, `index.html`, `src/constants.ts`, `package.json`, `vite.config.ts`, `README.md`, and PWA manifests.
+
+2. **Database v4 Schema & Migration (`src/data/db.ts`)**:
+   - Added `version(4)` with automatic migration preserving previous v1/v2/v3 data.
+   - Cleanly separated pure content into `cards` and all scheduling state (FSRS due, stability, difficulty, reps, lapses, lastReview, trap) into `reviewItems`.
+   - Added dedicated tables for `tags`, `imports`, and enhanced `notes` and `sessions`.
+   - Implemented automatic pre-upgrade safety backup (`src/data/backup/preUpgrade.ts`) to download a JSON snapshot before upgrading legacy databases.
+
+3. **Unified Importer & Parser (`src/core/importers/importParser.ts`)**:
+   - Robust line-oriented parser supporting `@ Path`, `Q:`, `A:`, `WHY:`, `TAGS:`, `TWO-WAY:`, `STAR:`, `ID:`, and `NOTE:` blocks (`TYPE:`, `COLOR:`, `CUE:`, `MEANS:`, `STORY:`, `BODY:`).
+   - Supports two import modes: (1) hierarchy defined by file `@` paths, or (2) relative scoping into the selected node.
+   - Preserves line breaks in multi-line answers and stories, and handles DOS/Windows CRLF and Unix LF.
+
+4. **Import Transactions & Undo (`src/data/repositories/importRepository.ts`)**:
+   - Executes all additions, tag mappings, and ID-based updates within a single Dexie transaction.
+   - Implemented `undoImport(importId)` in Settings to safely roll back imported cards, review items, notes, empty nodes, and orphaned tags.
+
+5. **Backups & Content Export (`src/data/backup/backup.ts`)**:
+   - **Full JSON Backup**: Dynamically exports and imports all Dexie tables with automatic schema compatibility across versions 1, 2, 3, and 4.
+   - **Content Export (`.txt`)**: Round-trips nodes, cards, notes, and tags formatted cleanly according to the import spec with stable ID generation.
+
+6. **RichText Component with LaTeX Support (`src/ui/components/RichText.tsx`)**:
+   - Integrated `katex`, `remark-math`, and `rehype-katex` for inline `$..$` and display `$$..$$` equations, complete with self-hosted KaTeX fonts and graceful fallback if syntax errors occur.
+
+7. **Study Screen Additions (`StudyCard.tsx`, `StudySession.tsx`)**:
+   - Display topic name and first-tag label chip above question prompts.
+   - Reverse prompt display for two-way reverse review items with a distinct direction chip.
+   - Full LaTeX rendering and post-flip explanation display.
+
+8. **User-Requested UI/UX Refinements**:
+   - **App Drawer Menu with Ocean Wave Art (`AppMenu.tsx`, `app-menu.css`)**: Replaced the big text header with an animated ocean-wave header where Mnemo swims gently across layered blue waves.
+   - **3D Tactile Wi-Fi Rating Button (`WifiRating.tsx`, `wifi-rating.css`)**: Widened to 390px with tactile mechanical push caps, shaded bevels, and realistic button depression.
+   - **Home Screen Remodel (`HomeScreen.tsx`, `home-screen.css`)**: Replaced the redundant blue hero start-session button with a mascot speech bubble showing ranked analysis insights, and added a quick Import button.
+   - **Header Screen Titles (`AppHeader.tsx`, `app-header.css`)**: Thickened header to host centered screen titles (Home, Notes, Cards, Analysis, Profile, Settings) and tiny `momdory` branding under Mnemo; eliminated duplicate screen taglines.
+   - **Full-Fill Streak Droplets (`WeeklyStreak.tsx`, `weekly-streak.css`)**: Replaced circular droplet clip with a full teardrop path so that streak droplets fill completely to the tip.
+
+9. **Verification & Tests**:
+   - 44/44 unit tests passing across 6 test suites covering migrations, import parser, import repository, backup round-trips, and core scheduler logic.
+   - `npm run build` succeeds with zero errors.
 
 ---
 
 ## Phase 5: Notes
 
-### 5.1 Notes screen
-- Top: search field ("Search notes": searches title, body, cue, meaning, story and tags within the selected scope) and a **filter row**: `All · Normal · Mnemonic · Formula · Trick` chips, plus a tag filter (multi-select chips from the tag pool, "Any of").
-- Each list row: title, type badge (Mnemonic `--partial`, Formula `--medium`, Trick `--hard`, Normal `--ink-soft`), tags.
-- Notes have an **Edit** button in place (all types); editor fields depend on type (Normal/Formula/Trick: title + body; Mnemonic: title + cue + meaning + story). Type is switchable.
-- Import/＋ opens the Import flow (4.4b).
+### 5.1 Note types and their looks
+Each type has its own look; `type` is a free string so new types only need UI. Titles are **optional** for every type except `concept` (empty shows "Untitled").
+| Type | Look and behaviour |
+|---|---|
+| `normal` | Markdown text with LaTeX; headings can collapse |
+| `concept` | **Toggle block**: title row with a chevron, tap to open/close with a smooth height animation; body inside |
+| `formula` | Highlighted box, display LaTeX centred, optional title as a small caption |
+| `mnemonic` | **Memory box**: shows the cue; morphs in place to the meaning (right swipe, double-tap or "Show meaning") and to the story (left swipe); see 5.8. Thin tile when collapsed |
+| `trick` | Callout with an accent bar and a small lightning glyph |
+| `table` | Markdown table in a horizontally scrollable container with sticky first column; tap a column header to collapse/expand that column; tap a row to highlight it. (Focus-on-one-row mode is deferred.) |
+Unknown types fall back to the `normal` look.
 
-### 5.2 Rendering by type
-- **Normal:** Markdown with collapsible headings (existing behaviour).
-- **Formula / Trick:** shown in a **highlighted box**: `--indigo-tint` fill, 4px `--indigo` left accent, `--radius-card`, JetBrains Mono for formulas, key lines bold.
-- **Mnemonic:** the **Memory box** (5.3).
+### 5.2 Colour (no icons)
+Fixed palette of names: `indigo, sky, mint, sun, rose, violet, slate`. Add tokens for each (`--note-<name>-bg`, `--note-<name>-accent`, `--note-<name>-ink`) in `tokens.css` with dark-theme values. Default colour by type: concept indigo, formula sky, mnemonic violet, trick sun, table mint, normal none. Orange is never used.
 
-### 5.3 Memory box: morphing text (the signature interaction)
-One highlighted box with three faces: **Cue** (default), **Meaning**, **Story** (only if a story exists).
-- **Right swipe or double-tap or the "Show meaning" pill** → morphs Cue → Meaning. **Left swipe** → morphs to Story. Swipe/tap back returns to Cue. A 3-dot indicator with tiny labels (Cue · Meaning · Story) shows the current face.
-- **The box does not slide.** Only the text morphs in place. During a swipe the box moves at most 8px with an elastic hint, then springs back.
-- Morph recipe (Framer Motion `AnimatePresence`, `layout` on the box so its height animates smoothly, 450 to 700ms):
-  - Split text into word tokens. Outgoing words: `opacity 1→0`, `filter: blur(0→6px)`, `y 0→-6px`, stagger 15ms per word.
-  - Incoming words: `opacity 0→1`, `blur(6→0)`, `y 6→0`, stagger 15ms, starting after ~35% of the outgoing animation.
-  - Cap the total stagger at 400ms regardless of word count.
-  - Reduced motion: 200ms cross-fade.
-- Face label ("Meaning", "Story") fades in above the text in `--indigo`, 12px caps.
+### 5.3 Long-press menu on a note
+Colour swatches; Bold; Text size (S/M/L); Font (Sans/Mono/Serif); Star/Unstar; Edit; Move up; Move down; Delete (confirm). Colour is saved in `color`, text options in `style`.
+
+### 5.4 Layout (UI only; nothing stored)
+- A topic shows its notes as a two-column grid that **preserves note order** (no `grid-auto-flow: dense`).
+- Default widths by type: `mnemonic`, `trick`, `formula` = half width; `normal`, `concept`, `table` = full width. Consecutive half-width notes sit side by side; a full-width note ends the row. An expanded mnemonic spans the full width and the following notes reflow below it (animate with Framer Motion `layout`).
+- Later enhancement (not now): stacking two small tiles beside one tall tile.
+
+### 5.5 Table of contents (calculated, not stored)
+A chip bar at the top of each topic listing its notes by title (untitled notes use "Formula 1", "Trick 2", …). Tap to scroll to the note with a brief highlight. Filters: type chips, starred, tag.
+
+### 5.6 Order
+`order` is stored per note within its node. Move up/down reorders and reindexes. Imported notes are appended after existing ones in file order.
+
+### 5.7 Search, filters and editor
+- Search field covers title, body, cue, meaning, story and tags within the selected scope; combine (AND) with type, tag and starred filters.
+- Editor fields depend on type (all: optional title, colour, tags; mnemonic: cue, meaning, story; others: body with LaTeX preview). Type is switchable. Editing happens in place, with Save and Cancel.
+- Notes render through the same `RichText`/Markdown pipeline (`react-markdown`, `remark-gfm`, `remark-math`, `rehype-katex`, mhchem).
+
+### 5.8 Memory box morph recipe
+One highlighted box with up to three faces: **Cue**, **Meaning**, **Story** (only if present). A three-dot indicator with tiny labels shows the current face.
+- The **box does not slide**. During a swipe it moves at most 8px with an elastic hint, then springs back.
+- Framer Motion `AnimatePresence` with `layout` on the box so its height animates (450 to 700ms). Split text into word tokens. Outgoing words: `opacity 1→0`, `blur 0→6px`, `y 0→-6px`, stagger 15ms. Incoming words: `opacity 0→1`, `blur 6→0`, `y 6→0`, stagger 15ms, starting after ~35% of the outgoing animation. Total stagger capped at 400ms.
+- Reduced motion: 200ms cross-fade. A small label ("Meaning", "Story") fades in above the text in `--indigo`.
 
 ### Style checklist (Phase 5)
-- [ ] Highlighted boxes use `--indigo-tint` and `--indigo`; formulas in JetBrains Mono
+- [ ] Each type is visibly different; colours come from palette tokens; works in dark mode
+- [ ] Long-press menu works on touch and does not scroll the page
+- [ ] Table scrolls horizontally with sticky first column; LaTeX renders offline
 - [ ] Morph feels like text transforming in place, not a card sliding
-- [ ] Search and filters work together (AND between search, type and tag filters)
 
 ---
 
@@ -343,7 +452,7 @@ One highlighted box with three faces: **Cue** (default), **Meaning**, **Story** 
 ### 6.1 Browse cards (`/cards/browse`)
 - Top stat strip: **Total · Due · Fading · Traps**. *Due* = `due ≤ now`; *Fading* = reviewed and recall < 0.8; *Traps* = flagged by Wrong.
 - Tree list: each node row shows name, counts (total/due/fading), a mastery bar. Tap to expand children; tap a node's "View cards" to open its card list.
-- Card list: search field and tag filter chips; each card collapsed shows the front, tap expands to show the back, tags and a ↔ badge for two-way. Inline **Edit** (front, back, tags, two-way switch) and **Delete** (confirm). **Add card** button creates a card in the current node.
+- Card list: search field and tag filter chips (with counts per tag in the current scope); each card collapsed shows the front, tap expands to show the back, explanation, tags (first = label) and a ↔ badge for two-way. Inline **Edit** (front, back, explanation, tags, two-way, star, paused) and **Delete** (confirm). Cards sharing a front show a small family count. **Add card** button creates a card in the current node.
 - Page size 50 with "Load more".
 
 ### 6.2 Nemo summary card (top of Cards tab, also top of Analysis)
@@ -365,6 +474,13 @@ Rule-based, **not AI**. A pure function `buildInsights(stats)` in `core/stats/in
 ### 6.3 Tags in analysis (`/analysis`)
 Add: **Tag performance** list (accuracy bar, review count, avg seconds), grouped into **Struggling** (< 60%) and **Strong** (≥ 90%), minimum 10 reviews, plus a tag filter for the existing charts. Keep all existing charts; the heatmap and streak history are now in Profile.
 
+### 6.4 Family study mode and session spacing
+- Session setup gets a small two-option chip, **Single cards | Families** (default Single), and a **Starred only** switch.
+- **Single mode spacing:** cards of the same family (4.4) are kept at least 5 positions apart in the queue when possible (`core/session/spreadFamilies.ts`, with tests).
+- **Family mode screen:** the shared front (e.g. "XeF₄") and topic line at the top; below it **thin rows, one per due card in the family**, each showing its label tag. Tap a row to reveal that answer; then grade that row with three buttons: **Got it**, **Blank**, **Wrong**. No Wi-Fi control here. Show only the family members that are due.
+- Mapping: Got it → `medium` (fsrs `good`); Blank → `blank` (fsrs `again`); Wrong → `wrong` (fsrs `again` and `trap = true`). Each row is saved as its own review with `studyMode: 'family'`. The family summary shows "3 of 4".
+- Mnemo companion and reactions work as in 3.3, reacting to each row.
+
 ---
 
 ## Phase 7: Mnemo everywhere, tags UI, polish
@@ -378,10 +494,10 @@ Support every mood file already in `src/assets/mascot/`: side `happy, excited, s
 - Header right: `happy` always.
 
 ### 7.3 Tags UI
-Tags are small rounded pills with a pointed left end (like a luggage tag) connected by a thin string to the item (Browse cards, note rows; and 3.1 on the study card). Colours from the hashed indigo/cyan family. Sway ±3° over 4s, staggered per tag, disabled by Settings or reduced motion.
+The first tag (the card's label) shows as a chip above the question (4.9); other tags are small rounded pills with a pointed left end (like a luggage tag) connected by a thin string to the item (Browse cards, note rows; and 3.1 on the study card). Colours from the hashed indigo/cyan family. Sway ±3° over 4s, staggered per tag, disabled by Settings or reduced motion.
 
 ### 7.4 PWA and housekeeping
-- Add `memdory-icon-peek.svg` (supplied) to `public/`, generate icons from it with `@vite-pwa/assets-generator` (192, 512, **separate maskable 512** with the artwork inside the 80% safe zone, Apple 180). Manifest: `name`/`short_name` = memdory; separate `purpose: 'any'` and `purpose: 'maskable'` entries pointing at different files.
+- Add `remembry-icon-peek.svg` (supplied) to `public/`, generate icons from it with `@vite-pwa/assets-generator` (192, 512, **separate maskable 512** with the artwork inside the 80% safe zone, Apple 180). Manifest: `name`/`short_name` = Remembree; separate `purpose: 'any'` and `purpose: 'maskable'` entries pointing at different files.
 - README: update the screen list, import format, and the Phase notes.
 
 ### Final acceptance (whole app)
@@ -389,7 +505,9 @@ Tags are small rounded pills with a pointed left end (like a luggage tag) connec
 - [ ] Header and tab bar never leave the screen edges
 - [ ] One completed session counts for the day; incomplete sessions can be resumed
 - [ ] Study screen has only the card, Wi-Fi control and Mnemo
-- [ ] One import file can build areas, nodes, notes, cards and tags; the same file can be imported into a single node
+- [ ] One import file can build areas, nodes, notes, cards and tags; the same file can be imported into a single node; imports can be undone
+- [ ] Full backup restores everything into a clean install; content export round-trips
+- [ ] Families study mode works with Got it / Blank / Wrong
 - [ ] Two-way cards schedule each direction separately
 - [ ] Tags appear in sessions, browse, notes and analysis
 - [ ] Mnemo moods wired as in 7.2

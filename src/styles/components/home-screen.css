@@ -1,0 +1,61 @@
+.home-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.home-import-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  transition: background var(--motion-fast) ease, border-color var(--motion-fast) ease, color var(--motion-fast) ease;
+}
+
+.home-import-btn:hover {
+  background: var(--indigo-tint);
+  border-color: var(--indigo);
+  color: var(--indigo);
+}
+
+.home-summary-hero {
+  min-height: 140px !important;
+  padding: 22px 24px !important;
+}
+
+.home-insight-bubble {
+  position: relative;
+  z-index: 2;
+}
+
+.home-insight-bubble p {
+  color: #fff;
+  font-size: 15.5px;
+  font-weight: 700;
+  line-height: 1.4;
+  margin: 0 0 8px;
+  text-shadow: 0 1px 3px rgba(20, 26, 77, 0.28);
+}
+
+.home-insight-link {
+  display: inline-block;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  opacity: 0.95;
+  transition: opacity var(--motion-fast) ease;
+}
+
+.home-insight-link:hover {
+  opacity: 1;
+}

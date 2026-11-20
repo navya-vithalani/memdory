@@ -11,7 +11,6 @@ import { SessionList } from '../components/SessionList';
 import { SessionPromptModal } from '../components/SessionPromptModal';
 import { SessionSetupModal, type SessionParams } from '../components/SessionSetupModal';
 import { StudySession } from '../components/StudySession';
-import { SummaryCard } from '../components/SummaryCard';
 
 type Modal = null | 'session' | 'add' | 'manual' | 'import';
 
@@ -168,10 +167,6 @@ export function CardsScreen() {
 
   return (
     <main className="screen cards-screen">
-      <header className="screen-intro">
-        <p className="eyebrow">Practice that sticks</p>
-        <h1>Cards</h1>
-      </header>
       {(error || treeError) && modal === null && (
         <p className="error-message" role="alert">
           {error || treeError}
@@ -225,7 +220,6 @@ export function CardsScreen() {
               Browse
             </button>
           </div>
-          <SummaryCard sessionCount={sessions.length} />
           <SessionList
             sessions={sessions}
             nodes={nodes}

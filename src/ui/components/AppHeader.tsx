@@ -1,12 +1,27 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Mnemo } from './Mnemo';
+import { APP_NAME } from '../../constants';
 
 type AppHeaderProps = {
   onMenu: () => void;
   menuOpen?: boolean;
 };
 
+function getScreenTitle(pathname: string): string {
+  if (pathname === '/') return 'Home';
+  if (pathname.startsWith('/notes')) return 'Notes';
+  if (pathname === '/cards/browse') return 'Browse Cards';
+  if (pathname.startsWith('/cards')) return 'Cards';
+  if (pathname.startsWith('/analysis')) return 'Study Insights';
+  if (pathname.startsWith('/profile')) return 'Streak & Activity';
+  if (pathname.startsWith('/settings')) return 'Settings';
+  return 'Home';
+}
+
 export function AppHeader({ onMenu, menuOpen }: AppHeaderProps) {
+  const location = useLocation();
+  const title = getScreenTitle(location.pathname);
+
   return (
     <header className="app-header">
       <button
@@ -19,8 +34,11 @@ export function AppHeader({ onMenu, menuOpen }: AppHeaderProps) {
         <span />
         <span />
       </button>
-      <Link to="/" className="header-title">memdory</Link>
-      <Link to="/profile" className="header-mnemo" aria-label="Open profile"><Mnemo mood="happy" /></Link>
+      <h1 className="header-title">{title}</h1>
+      <Link to="/profile" className="header-brand-group" aria-label="Open profile">
+        <Mnemo mood="happy" className="header-mascot" />
+        <span className="header-brand-name">{APP_NAME}</span>
+      </Link>
     </header>
   );
 }

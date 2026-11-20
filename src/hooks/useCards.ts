@@ -49,9 +49,9 @@ export function useCards() {
     const selection = selectSessionCards(cards.map((card) => ({
       id: card.id,
       front: card.front,
-      due: card.due,
-      reviewed: card.lastReview !== null,
-      trap: card.trap,
+      due: card.due ?? now,
+      reviewed: card.lastReview != null,
+      trap: Boolean(card.trap),
       recall: getRecallProbability(card, now)
     })), mode, count, {
       now,
@@ -81,9 +81,10 @@ export function useCards() {
       ? await getSession(sessionOrId)
       : sessionOrId;
     if (!session) return null;
-    const cards = await db.cards.where('id').anyOf(session.queueCardIds).toArray();
+    const queueCardIds = session.queueCardIds ?? session.queueItemIds ?? [];
+    const cards = await db.cards.where('id').anyOf(queueCardIds).toArray();
     const cardMap = new Map(cards.map((c) => [c.id, c]));
-    const orderedCards = session.queueCardIds
+    const orderedCards = queueCardIds
       .map((id) => cardMap.get(id))
       .filter((card): card is CardRecord => card !== undefined);
     return { session, cards: orderedCards };

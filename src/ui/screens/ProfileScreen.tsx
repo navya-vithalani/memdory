@@ -15,7 +15,6 @@ export function ProfileScreen() {
 
   return (
     <main className="screen profile-screen">
-      <header className="screen-intro"><p className="eyebrow">Your journey</p><h1>Streak & activity</h1><p className="muted">Showing up is what builds memory.</p><Mnemo mood="happy" className="screen-mascot profile-mascot" /></header>
       {error && <p className="error-message" role="alert">{error}</p>}
       <section className="stats-grid">
         <StatCard label="Current streak" value={`${home?.currentStreak ?? 0} days`} tone="orange" />

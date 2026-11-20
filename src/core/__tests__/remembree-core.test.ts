@@ -239,12 +239,12 @@ describe('FSRS review scheduling', () => {
     const hard = scheduleCardReview(newCard, 'hard', 1000);
     const easy = scheduleCardReview(newCard, 'easy', 1000);
     const wrong = scheduleCardReview(newCard, 'wrong', 1000);
-    expect(easy.due).toBeGreaterThan(hard.due);
+    expect(easy.due ?? 0).toBeGreaterThan(hard.due ?? 0);
     expect(wrong.trap).toBe(true);
-    expect(getRecallProbability(easy, easy.due)).toBeLessThan(1);
+    expect(getRecallProbability(easy, easy.due ?? 0)).toBeLessThan(1);
   });
 
   it('gives Partial a minimum one-day interval', () => {
-    expect(scheduleCardReview(newCard, 'partial', 1000).due).toBeGreaterThanOrEqual(1000 + 24 * 60 * 60 * 1000);
+    expect(scheduleCardReview(newCard, 'partial', 1000).due ?? 0).toBeGreaterThanOrEqual(1000 + 24 * 60 * 60 * 1000);
   });
 });

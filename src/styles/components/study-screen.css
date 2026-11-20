@@ -55,7 +55,17 @@
   transform-style: preserve-3d;
   -webkit-tap-highlight-color: transparent;
 }
-.study-card:focus-visible .study-face { box-shadow: 0 0 0 3px var(--indigo), var(--shadow-card); }
+.study-card:focus-visible .study-card-meta { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 6px; flex: 0 0 auto; }
+.study-card-topic { color: var(--ink-soft); font-size: 12px; font-weight: 700; }
+.study-card-label { background: var(--indigo-tint); color: var(--indigo); font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 999px; }
+.study-card-explanation { margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--line); color: var(--ink-soft); font-size: 14px; font-weight: 600; line-height: 1.4; }
+
+.study-face { box-shadow: 0 0 0 3px var(--indigo), var(--shadow-card); }
+.study-card-meta { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 6px; flex: 0 0 auto; }
+.study-card-topic { color: var(--ink-soft); font-size: 12px; font-weight: 700; }
+.study-card-label { background: var(--indigo-tint); color: var(--indigo); font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 999px; }
+.study-card-explanation { margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--line); color: var(--ink-soft); font-size: 14px; font-weight: 600; line-height: 1.4; }
+
 .study-face {
   display: flex;
   flex-direction: column;
@@ -90,7 +100,12 @@
 .study-face-body::before, .study-face-body::after { margin-block: auto; content: ""; }
 .study-face small { flex: 0 0 auto; margin-top: 10px; color: var(--ink-soft); font-size: 12px; font-weight: 700; }
 
-.study-card.is-wrong .study-face { border-color: var(--wrong); box-shadow: 0 0 0 3px color-mix(in srgb, var(--wrong) 40%, transparent), var(--shadow-card); }
+.study-card.is-wrong .study-card-meta { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 6px; flex: 0 0 auto; }
+.study-card-topic { color: var(--ink-soft); font-size: 12px; font-weight: 700; }
+.study-card-label { background: var(--indigo-tint); color: var(--indigo); font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 999px; }
+.study-card-explanation { margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--line); color: var(--ink-soft); font-size: 14px; font-weight: 600; line-height: 1.4; }
+
+.study-face { border-color: var(--wrong); box-shadow: 0 0 0 3px color-mix(in srgb, var(--wrong) 40%, transparent), var(--shadow-card); }
 .study-card.is-wrong { animation: study-wrong-shake 260ms ease; }
 @keyframes study-wrong-shake { 0%, 100% { translate: 0; } 25% { translate: -7px; } 75% { translate: 7px; } }
 .study-card-fade .study-face-back { transform: none; }

@@ -54,11 +54,11 @@ export function WeeklyStreak({
                     <g className="drop-water-wrapper">
                       <path
                         className="drop-wave wave-1"
-                        d="M -32 0 Q -16 -3 0 0 Q 16 3 32 0 Q 48 -3 64 0 V 40 H -32 Z"
+                        d="M -32 -2 Q -16 -5 0 -2 Q 16 1 32 -2 Q 48 -5 64 -2 V 42 H -32 Z"
                       />
                       <path
                         className="drop-wave wave-2"
-                        d="M -32 1 Q -16 4 0 1 Q 16 -2 32 1 Q 48 4 64 1 V 40 H -32 Z"
+                        d="M -32 -1 Q -16 2 0 -1 Q 16 -4 32 -1 Q 48 2 64 -1 V 42 H -32 Z"
                       />
                     </g>
                     <path className="drop-shine" d="M10 24c.4-3.1 2.2-5.4 4.5-7" />

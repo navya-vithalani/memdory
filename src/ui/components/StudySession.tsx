@@ -1,7 +1,9 @@
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSettings } from '../../hooks/useSettings';
 import { useStudySession } from '../../hooks/useStudySession';
+import { useTree } from '../../hooks/useTree';
+import { db } from '../../data/db';
 import type { CardRecord } from '../../types';
 import { CompletionCelebration } from './CompletionCelebration';
 import { Mnemo } from './Mnemo';
@@ -20,6 +22,8 @@ type StudySessionProps = {
 export function StudySession({ sessionId, cards, initialPosition = 0, onExit }: StudySessionProps) {
   const session = useStudySession({ sessionId, cards, initialPosition });
   const { settings, updateSettings } = useSettings();
+  const { nodes } = useTree();
+  const [labelTag, setLabelTag] = useState<string | undefined>(undefined);
   const reduceMotion = useReducedMotion();
   const screenRef = useRef<HTMLElement>(null);
   const startedAt = useRef(Date.now());
@@ -62,6 +66,23 @@ export function StudySession({ sessionId, cards, initialPosition = 0, onExit }: 
 
   const { current } = session;
   const slide = reduceMotion ? 0 : 56;
+  const topicName = nodes.find((n) => n.id === current?.nodeId)?.name;
+
+  useEffect(() => {
+    const firstTagId = current?.tagIds?.[0];
+    if (!firstTagId) {
+      setLabelTag(undefined);
+      return;
+    }
+    let active = true;
+    void db.tags.get(firstTagId).then((t) => {
+      if (active) setLabelTag(t?.label ?? t?.name);
+    });
+    return () => {
+      active = false;
+    };
+  }, [current?.tagIds]);
+
   return (
     <main className="screen study-screen" ref={screenRef}>
       <StudyTopBar
@@ -86,6 +107,9 @@ export function StudySession({ sessionId, cards, initialPosition = 0, onExit }: 
             <StudyCard
               front={current.front}
               back={current.back}
+              explanation={current.explanation}
+              topicName={topicName}
+              labelTag={labelTag}
               flipped={session.flipped}
               wrong={session.wrongFeedback}
               onFlip={session.flip}

@@ -21,7 +21,7 @@ export function WifiRating({ enabled, onRate }: WifiRatingProps) {
     if (!enabled) return;
     setPressed(rating);
     window.clearTimeout(timer.current);
-    timer.current = window.setTimeout(() => setPressed(null), 260);
+    timer.current = window.setTimeout(() => setPressed(null), 240);
     navigator.vibrate?.(rating === 'wrong' ? 30 : 10);
     onRate(rating);
   }
@@ -35,40 +35,66 @@ export function WifiRating({ enabled, onRate }: WifiRatingProps) {
 
   return (
     <div className={`wifi-rating${enabled ? ' is-enabled' : ''}`}>
-      <svg className="wifi-svg" viewBox={`0 0 ${WIFI_VIEWBOX.width} ${WIFI_VIEWBOX.height}`} role="group" aria-label="Rate your recall">
+      <svg
+        className="wifi-svg"
+        viewBox={`0 0 ${WIFI_VIEWBOX.width} ${WIFI_VIEWBOX.height}`}
+        role="group"
+        aria-label="Rate your recall"
+      >
         <defs>
-          {segments.map((segment) => segment.labelPath && (
-            <path key={segment.id} id={`${uid}-${segment.id}`} d={segment.labelPath} />
-          ))}
+          {segments.map(
+            (segment) =>
+              segment.labelPath && (
+                <path key={segment.id} id={`${uid}-${segment.id}`} d={segment.labelPath} />
+              )
+          )}
         </defs>
         {bands.map((band) => (
           <g key={band} className={`wifi-band wifi-band-${band}`}>
-            {segments.filter((segment) => segment.band === band).map((segment) => (
-              <g
-                key={segment.id}
-                className={`wifi-seg wifi-seg-${segment.id}${pressed === segment.id ? ' is-pressed' : ''}`}
-                role="button"
-                tabIndex={enabled ? 0 : -1}
-                aria-label={`Rate ${segment.label}`}
-                aria-disabled={!enabled}
-                onClick={() => choose(segment.id)}
-                onKeyDown={(event) => onKeyDown(event, segment.id)}
-              >
-                <path className="wifi-ring" d={segment.shape} />
-                <path className="wifi-shape" d={segment.shape} />
-                {segment.labelPath ? (
-                  <text className="wifi-label">
-                    <textPath href={`#${uid}-${segment.id}`} startOffset="50%" textAnchor="middle" dy="0.35em">
-                      {segment.label}
-                    </textPath>
-                  </text>
-                ) : (
-                  <text className="wifi-label wifi-label-dot" x={WIFI_CENTER.x} y={WIFI_CENTER.y} textAnchor="middle" dominantBaseline="central">
-                    {segment.label}
-                  </text>
-                )}
-              </g>
-            ))}
+            {segments
+              .filter((segment) => segment.band === band)
+              .map((segment) => (
+                <g
+                  key={segment.id}
+                  className={`wifi-seg wifi-seg-${segment.id}${
+                    pressed === segment.id ? ' is-pressed' : ''
+                  }`}
+                  role="button"
+                  tabIndex={enabled ? 0 : -1}
+                  aria-label={`Rate ${segment.label}`}
+                  aria-disabled={!enabled}
+                  onClick={() => choose(segment.id)}
+                  onKeyDown={(event) => onKeyDown(event, segment.id)}
+                >
+                  <path className="wifi-shadow" d={segment.shape} />
+                  <g className="wifi-btn-cap">
+                    <path className="wifi-ring" d={segment.shape} />
+                    <path className="wifi-shape" d={segment.shape} />
+                    {segment.labelPath ? (
+                      <text className="wifi-label">
+                        <textPath
+                          href={`#${uid}-${segment.id}`}
+                          startOffset="50%"
+                          textAnchor="middle"
+                          dy="0.35em"
+                        >
+                          {segment.label}
+                        </textPath>
+                      </text>
+                    ) : (
+                      <text
+                        className="wifi-label wifi-label-dot"
+                        x={WIFI_CENTER.x}
+                        y={WIFI_CENTER.y}
+                        textAnchor="middle"
+                        dominantBaseline="central"
+                      >
+                        {segment.label}
+                      </text>
+                    )}
+                  </g>
+                </g>
+              ))}
           </g>
         ))}
       </svg>

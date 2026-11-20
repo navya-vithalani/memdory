@@ -4,12 +4,12 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 const pwaPlugin = VitePWA({
   registerType: 'autoUpdate',
-  workbox: { globPatterns: ['**/*.{js,css,html,woff2}'] },
+  workbox: { globPatterns: ['**/*.{js,css,html,woff2,woff,ttf}'] },
   includeAssets: ['Icons/apple-touch-icon.png', 'Icons/icon-192.png', 'Icons/icon-512.png'],
   manifest: {
     id: '/',
-    name: 'memdory',
-    short_name: 'memdory',
+    name: 'momdory',
+    short_name: 'momdory',
     description: 'Offline-first flashcards and notes for daily study.',
     theme_color: '#1E2A78',
     background_color: '#F6F7FD',
@@ -30,7 +30,7 @@ const pwaPlugin = VitePWA({
 export default defineConfig({
   plugins: [react(), ...pwaPlugin],
   test: {
-    environment: 'jsdom',
+    environment: 'node',
     globals: true
   }
 });

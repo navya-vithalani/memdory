@@ -53,7 +53,7 @@ async function loadSnapshot(settings: SettingsRecord, nodes: TreeNode[]): Promis
     .sort((a, b) => a.order - b.order || a.name.localeCompare(b.name))
     .map((node) => {
       const scope = new Set(getDescendantIds(nodes, node.id));
-      const reviewed = cards.filter((card) => scope.has(card.nodeId) && card.lastReview !== null);
+      const reviewed = cards.filter((card) => scope.has(card.nodeId) && card.lastReview != null);
       const mastery = reviewed.length
         ? Math.round(reviewed.reduce((sum, card) => sum + getRecallProbability(card, now), 0) / reviewed.length * 100)
         : 0;
@@ -63,7 +63,7 @@ async function loadSnapshot(settings: SettingsRecord, nodes: TreeNode[]): Promis
   const weakestTopic = nodes
     .filter((node) => node.parentId !== null)
     .map((node) => {
-      const reviewed = cards.filter((card) => card.nodeId === node.id && card.lastReview !== null);
+      const reviewed = cards.filter((card) => card.nodeId === node.id && card.lastReview != null);
       if (reviewed.length === 0) return null;
       const recall = reviewed.reduce((sum, card) => sum + getRecallProbability(card, now), 0) / reviewed.length;
       return { node, recall };
@@ -76,8 +76,8 @@ async function loadSnapshot(settings: SettingsRecord, nodes: TreeNode[]): Promis
     longestStreak: calculateLongestStreak(completedDayKeys),
     reviewsToday,
     dailyGoal: settings.dailyGoal,
-    dueCards: cards.filter((card) => card.lastReview !== null && card.due <= now).length,
-    atRiskCards: cards.filter((card) => card.lastReview !== null && (card.trap || getRecallProbability(card, now) <= AT_RISK_RECALL)).length,
+    dueCards: cards.filter((card) => card.lastReview != null && (card.due ?? 0) <= now).length,
+    atRiskCards: cards.filter((card) => card.lastReview != null && (Boolean(card.trap) || getRecallProbability(card, now) <= AT_RISK_RECALL)).length,
     areas,
     weakestTopic,
     lastSession,

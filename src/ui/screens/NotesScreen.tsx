@@ -3,7 +3,7 @@ import { useNotes } from '../../hooks/useNotes';
 import { useTree } from '../../hooks/useTree';
 import { NodeSelect } from '../components/NodeSelect';
 import { NotesMarkdown } from '../components/NotesMarkdown';
-import { Mnemo } from '../components/Mnemo';
+import { ImportModal } from '../components/ImportModal';
 
 export function NotesScreen() {
   const { nodes, error: treeError, refresh: refreshTree } = useTree();
@@ -15,7 +15,8 @@ export function NotesScreen() {
   const [body, setBody] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const { notes, error: notesError, importFile: importNoteFile, create: createNote, save: saveNote } = useNotes(nodeId);
+  const [importOpen, setImportOpen] = useState(false);
+  const { notes, error: notesError, create: createNote, save: saveNote, refresh: refreshNotes } = useNotes(nodeId);
 
   useEffect(() => {
     setNodeId((current) => nodes.some((node) => node.id === current) ? current : nodes[0]?.id ?? '');
@@ -29,28 +30,10 @@ export function NotesScreen() {
 
   useEffect(() => {
     if (!selectedNote) return;
-    setTitle(selectedNote.title);
+    setTitle(selectedNote.title ?? '');
     setBody(selectedNote.body);
     setEditing(false);
   }, [selectedId, selectedNote?.updatedAt]);
-
-  async function handleImport(file?: File) {
-    if (!file || !nodeId) return;
-    try {
-      const result = await importNoteFile(file);
-      await refreshTree();
-      const firstNote = result.notes[0];
-      if (firstNote) {
-        setNodeId(firstNote.nodeId);
-        setSelectedId(firstNote.id);
-      }
-      setSuccess(`Imported ${result.notes.length} note${result.notes.length === 1 ? '' : 's'}${result.createdNodes ? ` and organized ${result.createdNodes} new topic${result.createdNodes === 1 ? '' : 's'}` : ''}.`);
-      setError('');
-    } catch (reason) {
-      setError(reason instanceof Error ? reason.message : 'Could not import the note.');
-      setSuccess('');
-    }
-  }
 
   async function handleCreate() {
     try {
@@ -82,20 +65,27 @@ export function NotesScreen() {
   }
 
   return (
-    <main className="screen">
-      <div className="panel-header notes-heading">
-        <div className="screen-intro"><p className="eyebrow">Your ideas, organized</p><h1>Notes</h1><p className="muted">Keep your study knowledge close at hand.</p><Mnemo className="screen-mascot notes-mascot" /></div>
-        {nodeId && <div className="notes-header-actions">
-          <button className="secondary-button" onClick={() => { setCreating(true); setEditing(true); setTitle(''); setBody(''); setSelectedId(''); }}>＋ Write note</button>
-          <label className="primary-button file-button">
-            Import file
-            <input type="file" accept=".txt,.md,text/plain,text/markdown" onChange={(event) => {
-              const file = event.target.files?.[0];
-              void handleImport(file);
-              event.target.value = '';
-            }} />
-          </label>
-        </div>}
+    <main className="screen notes-screen">
+      <div className="panel-header notes-action-bar">
+        {nodeId && (
+          <div className="notes-header-actions" style={{ marginLeft: 'auto', display: 'flex', gap: '8px' }}>
+            <button
+              className="secondary-button"
+              onClick={() => {
+                setCreating(true);
+                setEditing(true);
+                setTitle('');
+                setBody('');
+                setSelectedId('');
+              }}
+            >
+              ＋ Write note
+            </button>
+            <button className="primary-button" onClick={() => setImportOpen(true)}>
+              Import file
+            </button>
+          </div>
+        )}
       </div>
       {(error || treeError || notesError) && <p className="error-message" role="alert">{error || treeError || notesError}</p>}
       {success && <p className="success-message" role="status">{success}</p>}
@@ -131,7 +121,7 @@ export function NotesScreen() {
                   {editing ? (
                     <div className="button-row">
                       <button className="secondary-button" onClick={() => {
-                        setTitle(selectedNote.title);
+                        setTitle(selectedNote.title ?? '');
                         setBody(selectedNote.body);
                         setEditing(false);
                       }}>Cancel</button>
@@ -155,6 +145,17 @@ export function NotesScreen() {
             )}
           </div>
         </>
+      )}
+      {importOpen && (
+        <ImportModal
+          nodes={nodes}
+          defaultNodeId={nodeId}
+          onClose={() => setImportOpen(false)}
+          onImported={() => {
+            void refreshTree();
+            void refreshNotes();
+          }}
+        />
       )}
     </main>
   );

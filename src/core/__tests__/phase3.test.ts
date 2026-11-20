@@ -72,9 +72,9 @@ describe('rating map is the single source of truth', () => {
   it('schedules partial like hard but never sooner than a day, and wrong marks a trap', () => {
     const now = noon(2026, 11, 19);
     expect(getSchedulerRating('partial').fsrs).toBe('hard');
-    expect(scheduleCardReview(card, 'partial', now).due - now).toBeGreaterThanOrEqual(86400000);
+    expect((scheduleCardReview(card, 'partial', now).due ?? 0) - now).toBeGreaterThanOrEqual(86400000);
     expect(scheduleCardReview(card, 'wrong', now).trap).toBe(true);
-    expect(scheduleCardReview(card, 'easy', now).due).toBeGreaterThan(scheduleCardReview(card, 'blank', now).due);
+    expect(scheduleCardReview(card, 'easy', now).due ?? 0).toBeGreaterThan(scheduleCardReview(card, 'blank', now).due ?? 0);
   });
 });
 

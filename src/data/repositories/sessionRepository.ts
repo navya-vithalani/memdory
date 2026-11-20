@@ -129,7 +129,8 @@ export async function getSessionDetail(sessionId: string): Promise<SessionDetail
   const session = await db.sessions.get(sessionId);
   if (!session) return null;
   const reviews = (await getSessionReviews(sessionId)).sort((a, b) => a.timestamp - b.timestamp);
-  const waitingIds = session.status === 'completed' ? [] : session.queueCardIds.slice(session.position);
+  const queue = session.queueCardIds ?? session.queueItemIds ?? [];
+  const waitingIds = session.status === 'completed' ? [] : queue.slice(session.position);
   const ids = [...new Set([...reviews.map((review) => review.cardId), ...waitingIds])];
   const cards = await db.cards.bulkGet(ids);
   const byId = new Map(cards.filter((card): card is CardRecord => card !== undefined).map((card) => [card.id, card]));

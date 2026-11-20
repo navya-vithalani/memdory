@@ -97,7 +97,7 @@ export function useAnalysisStats() {
         .slice(0, 5);
       const recallByNode = new Map<string, { total: number; count: number }>();
       for (const card of cards) {
-        if (card.lastReview === null) continue;
+        if (card.lastReview == null) continue;
         const recall = recallByNode.get(card.nodeId) ?? { total: 0, count: 0 };
         recall.total += getRecallProbability(card, now.getTime());
         recall.count += 1;
@@ -116,6 +116,7 @@ export function useAnalysisStats() {
         return {
           day: index === 0 ? 'Today' : dayLabel(date, true),
           count: cards.filter((card) => {
+            if (card.due == null) return false;
             const due = new Date(card.due);
             return dayKey(due) === key && (index > 0 || due.getTime() <= now.getTime());
           }).length

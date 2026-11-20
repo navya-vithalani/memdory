@@ -1,23 +1,25 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useCards } from '../../hooks/useCards';
 import { useHomeStats } from '../../hooks/useHomeStats';
 import { useSettings } from '../../hooks/useSettings';
 import { useTree } from '../../hooks/useTree';
 import type { SessionRecord } from '../../types';
 import { Mnemo } from '../components/Mnemo';
+import { ImportModal } from '../components/ImportModal';
 import { SessionPromptModal } from '../components/SessionPromptModal';
 import { StatCard } from '../components/StatCard';
 import { TreeManager } from '../components/TreeManager';
 import { WeeklyStreak } from '../components/WeeklyStreak';
 
 export function HomeScreen() {
-  const { nodes, error, actions } = useTree();
+  const { nodes, error, actions, refresh: refreshTree } = useTree();
   const { settings, error: settingsError } = useSettings();
   const { snapshot, error: statsError, refresh } = useHomeStats(settings, nodes);
   const { discard } = useCards();
   const navigate = useNavigate();
   const [promptSession, setPromptSession] = useState<SessionRecord | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
 
   const areaMastery = Object.fromEntries(
     (snapshot?.areas ?? []).map(({ node, mastery }) => [node.id, mastery])
@@ -26,7 +28,6 @@ export function HomeScreen() {
   const scopeName = (id: string | null) =>
     nodes.find((node) => node.id === id)?.name ?? 'All topics';
 
-  // Mascot mood and greeting based on days since last completed session
   let mascotMood: 'happy' | 'sleepy' | 'sad' | 'rotten' = 'happy';
   let greetingLine = 'Ready when you are.';
   if (snapshot?.lastSession?.completedAt) {
@@ -49,10 +50,6 @@ export function HomeScreen() {
   }
 
   const atRiskCount = snapshot?.atRiskCards ?? snapshot?.dueCards ?? 0;
-  const startButtonText =
-    atRiskCount > 0
-      ? `Start session (${atRiskCount} cards about to be forgotten)`
-      : 'Start session';
 
   function handleStartSession() {
     if (snapshot?.inProgressSession) {
@@ -71,48 +68,57 @@ export function HomeScreen() {
     }
   }
 
+  // Sensible mascot insight for the home hero summary
+  let insightText = "Every short session helps you remember more. Let's make today count!";
+  if (snapshot?.inProgressSession) {
+    insightText = 'You have a study session in progress. Pick it right back up!';
+  } else if (atRiskCount > 0) {
+    insightText = `${atRiskCount} cards are ready for review today before they fade.`;
+  } else if (nodes.length === 0) {
+    insightText = 'Welcome! Add a study area below or import your notes and flashcards.';
+  }
+
   return (
     <main className="screen home-screen">
       <header className="home-header">
         <div className="home-welcome">
-          <p className="eyebrow">A little progress adds up</p>
-          <h1>{greetingLine}</h1>
+          <h2>{greetingLine}</h2>
         </div>
-        <button
-          className="home-quick-start"
-          onClick={handleStartSession}
-          disabled={nodes.length === 0}
-          aria-label="Start a study session"
-        >
-          <span aria-hidden="true">▶</span>
-        </button>
-      </header>
-
-      {/* Greeting card & Start session CTA */}
-      <section className="home-hero">
-        <div className="home-hero-copy">
-          <p className="eyebrow">Your next small win</p>
-          <h2>
-            Make today
-            <br />a day to remember.
-          </h2>
-          <p>You're doing great. Let's keep it going.</p>
+        <div className="home-header-actions">
           <button
-            className="primary-button"
+            className="home-import-btn secondary-button"
+            onClick={() => setImportOpen(true)}
+            aria-label="Import files"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14" />
+            </svg>
+            <span>Import</span>
+          </button>
+          <button
+            className="home-quick-start"
             onClick={handleStartSession}
             disabled={nodes.length === 0}
+            aria-label="Start study session"
           >
-            <span aria-hidden="true">▶</span> {startButtonText}
+            <span aria-hidden="true">▶</span>
           </button>
-          {nodes.length === 0 && (
-            <span className="hero-hint">Add your first study area below to begin.</span>
-          )}
+        </div>
+      </header>
+
+      {/* Remade Hero: mascot insight & analysis summary */}
+      <section className="home-hero home-summary-hero">
+        <div className="home-hero-copy">
+          <div className="home-insight-bubble">
+            <p>{insightText}</p>
+            <Link to="/analysis" className="home-insight-link">See full study insights →</Link>
+          </div>
         </div>
         <Mnemo mood={mascotMood} className="home-mascot" />
         <div className="home-wave" aria-hidden="true" />
       </section>
 
-      {/* Resume session card (only if an incomplete session exists) */}
+      {/* Resume session card (if an incomplete session exists) */}
       {snapshot?.inProgressSession && (
         <section className="resume-session-card">
           <div className="resume-session-copy">
@@ -203,6 +209,18 @@ export function HomeScreen() {
             navigate('/cards?action=start');
           }}
           onClose={() => setPromptSession(null)}
+        />
+      )}
+
+      {/* Import Modal */}
+      {importOpen && (
+        <ImportModal
+          nodes={nodes}
+          onClose={() => setImportOpen(false)}
+          onImported={() => {
+            void refreshTree();
+            void refresh();
+          }}
         />
       )}
     </main>

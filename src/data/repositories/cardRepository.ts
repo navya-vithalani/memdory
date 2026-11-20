@@ -1,22 +1,63 @@
 import { createEmptyCard, State } from 'ts-fsrs';
 import { getDescendantIds } from '../../core/tree/tree';
 import { parseCards, type ParsedCard } from '../../core/importers/cardParser';
+import { normalizeTagName } from '../../core/importers/importParser';
+import { scheduleReviewItem } from '../../core/scheduler/reviewCard';
+import { studyDayKey } from '../../core/streak/streak';
 import { db, defaultSettings } from '../db';
-import type { CardRecord, ReviewRating } from '../../types';
+import type { CardRecord, ReviewItemRecord, ReviewRating } from '../../types';
 
 function normalizeFront(front: string): string {
   return front.normalize('NFKC').replace(/\s+/g, ' ').trim().toLocaleLowerCase();
 }
 
+export type StudyCardItem = {
+  card: CardRecord;
+  reviewItem: ReviewItemRecord;
+  /** Effective front shown on card (swapped for reverse direction) */
+  displayFront: string;
+  /** Effective back shown on card (swapped for reverse direction) */
+  displayBack: string;
+};
+
+export async function listStudyItemsInScope(nodeId: string | null): Promise<StudyCardItem[]> {
+  const nodeIds = nodeId === null
+    ? null
+    : getDescendantIds(await db.nodes.toArray(), nodeId);
+
+  const cards = nodeIds === null
+    ? await db.cards.filter((c) => !c.paused).toArray()
+    : await db.cards.where('nodeId').anyOf(nodeIds).filter((c) => !c.paused).toArray();
+
+  const cardMap = new Map(cards.map((c) => [c.id, c]));
+  const cardIds = cards.map((c) => c.id);
+  const items = await db.reviewItems.where('cardId').anyOf(cardIds).toArray();
+
+  return items
+    .map((reviewItem) => {
+      const card = cardMap.get(reviewItem.cardId);
+      if (!card) return null;
+      const isRev = reviewItem.direction === 'reverse';
+      return {
+        card,
+        reviewItem,
+        displayFront: isRev ? card.back : card.front,
+        displayBack: isRev ? card.front : card.back
+      };
+    })
+    .filter((entry): entry is StudyCardItem => entry !== null);
+}
+
 export async function listCardsInScope(nodeId: string | null): Promise<CardRecord[]> {
-  const cards = nodeId === null
+  const nodeIds = nodeId === null
+    ? null
+    : getDescendantIds(await db.nodes.toArray(), nodeId);
+
+  const cards = nodeIds === null
     ? await db.cards.toArray()
-    : await (async () => {
-      const nodes = await db.nodes.toArray();
-      const nodeIds = getDescendantIds(nodes, nodeId);
-      return db.cards.where('nodeId').anyOf(nodeIds).toArray();
-    })();
-  return cards.sort((a, b) => a.due - b.due || a.createdAt - b.createdAt);
+    : await db.cards.where('nodeId').anyOf(nodeIds).toArray();
+
+  return cards.sort((a, b) => (a.due ?? a.createdAt) - (b.due ?? b.createdAt));
 }
 
 export async function previewCardImport(nodeId: string, source: string): Promise<{
@@ -44,52 +85,140 @@ export async function previewCardImport(nodeId: string, source: string): Promise
 export async function importCards(nodeId: string, source: string): Promise<{ added: number; skipped: number; invalid: number }> {
   const preview = await previewCardImport(nodeId, source);
   const now = Date.now();
-  const records = preview.cards.map((parsed) => {
+  const cardsToAdd: CardRecord[] = [];
+  const reviewItemsToAdd: ReviewItemRecord[] = [];
+
+  for (const parsed of preview.cards) {
+    const cardId = crypto.randomUUID();
     const empty = createEmptyCard(new Date(now));
-    const card: CardRecord = {
-      id: crypto.randomUUID(),
+
+    cardsToAdd.push({
+      id: cardId,
       nodeId,
       front: parsed.front,
       back: parsed.back,
-      trap: false,
+      explanation: null,
+      tagIds: [],
+      kind: 'basic',
+      direction: 'one-way',
+      starred: false,
+      paused: false,
+      sourceKey: null,
+      importId: null,
       createdAt: now,
+      updatedAt: now
+    });
+
+    reviewItemsToAdd.push({
+      id: crypto.randomUUID(),
+      cardId,
+      direction: 'forward',
       due: now,
       stability: empty.stability,
       difficulty: empty.difficulty,
       state: State.New,
       reps: empty.reps,
       lapses: empty.lapses,
-      lastReview: null
-    };
-    return card;
-  });
-  if (records.length) await db.cards.bulkAdd(records);
-  return { added: records.length, skipped: preview.skipped, invalid: preview.invalid };
+      lastReview: null,
+      trap: false,
+      createdAt: now
+    });
+  }
+
+  if (cardsToAdd.length) {
+    await db.transaction('rw', db.cards, db.reviewItems, async () => {
+      await db.cards.bulkAdd(cardsToAdd);
+      await db.reviewItems.bulkAdd(reviewItemsToAdd);
+    });
+  }
+
+  return { added: cardsToAdd.length, skipped: preview.skipped, invalid: preview.invalid };
 }
 
-export async function createCard(nodeId: string, front: string, back: string): Promise<CardRecord> {
+export async function createCard(
+  nodeId: string,
+  front: string,
+  back: string,
+  options?: {
+    explanation?: string | null;
+    tags?: string[];
+    direction?: 'one-way' | 'both';
+    starred?: boolean;
+  }
+): Promise<CardRecord> {
   const cleanFront = front.trim();
   const cleanBack = back.trim();
   if (!cleanFront || !cleanBack) throw new Error('Add both a question and an answer.');
   if (!await db.nodes.get(nodeId)) throw new Error('The selected topic no longer exists.');
   const now = Date.now();
+  const cardId = crypto.randomUUID();
   const empty = createEmptyCard(new Date(now));
+
+  const tagIds: string[] = [];
+  if (options?.tags?.length) {
+    for (const rawTag of options.tags) {
+      const { key, label } = normalizeTagName(rawTag);
+      let existing = await db.tags.where('name').equals(key).first();
+      if (!existing) {
+        existing = { id: crypto.randomUUID(), name: key, label, createdAt: now };
+        await db.tags.add(existing);
+      }
+      tagIds.push(existing.id);
+    }
+  }
+
+  const direction = options?.direction ?? 'one-way';
   const card: CardRecord = {
-    id: crypto.randomUUID(),
+    id: cardId,
     nodeId,
     front: cleanFront,
     back: cleanBack,
-    trap: false,
+    explanation: options?.explanation ?? null,
+    tagIds,
+    kind: 'basic',
+    direction,
+    starred: Boolean(options?.starred),
+    paused: false,
+    sourceKey: null,
+    importId: null,
     createdAt: now,
-    due: now,
-    stability: empty.stability,
-    difficulty: empty.difficulty,
-    state: State.New,
-    reps: empty.reps,
-    lapses: empty.lapses,
-    lastReview: null
+    updatedAt: now
   };
-  await db.cards.add(card);
+
+  await db.transaction('rw', db.cards, db.reviewItems, async () => {
+    await db.cards.add(card);
+    await db.reviewItems.add({
+      id: crypto.randomUUID(),
+      cardId,
+      direction: 'forward',
+      due: now,
+      stability: empty.stability,
+      difficulty: empty.difficulty,
+      state: State.New,
+      reps: empty.reps,
+      lapses: empty.lapses,
+      lastReview: null,
+      trap: false,
+      createdAt: now
+    });
+    if (direction === 'both') {
+      await db.reviewItems.add({
+        id: crypto.randomUUID(),
+        cardId,
+        direction: 'reverse',
+        due: now,
+        stability: empty.stability,
+        difficulty: empty.difficulty,
+        state: State.New,
+        reps: empty.reps,
+        lapses: empty.lapses,
+        lastReview: null,
+        trap: false,
+        createdAt: now
+      });
+    }
+  });
+
   return card;
 }
 
@@ -114,34 +243,56 @@ export async function saveReview(
   rating: ReviewRating,
   durationMs: number,
   timestamp: number,
-  updatedCard: CardRecord
+  updatedCard?: CardRecord,
+  reviewItemId?: string
 ): Promise<void> {
-  await db.transaction('rw', db.cards, db.reviews, db.settings, async () => {
-    const [settings, previousReviewCount] = await Promise.all([
-      db.settings.get('settings'),
-      db.reviews.count()
-    ]);
-    await db.cards.put(updatedCard);
-    await db.reviews.add({
-      id: crypto.randomUUID(),
-      cardId: card.id,
-      sessionId,
-      rating,
-      durationMs,
-      timestamp
-    });
+  await db.transaction('rw', db.cards, db.reviewItems, db.reviews, db.settings, async () => {
+    const settings = await db.settings.get('settings');
+    const dayStart = settings?.dayStartMinutes ?? 210;
+    const dayKey = studyDayKey(timestamp, dayStart);
+    const retention = settings?.desiredRetention ?? 0.9;
+
+    let targetItem: ReviewItemRecord | undefined;
+    if (reviewItemId) {
+      targetItem = await db.reviewItems.get(reviewItemId);
+    }
+    if (!targetItem) {
+      targetItem = await db.reviewItems.where('cardId').equals(card.id).first();
+    }
+
+    if (targetItem) {
+      const scheduleResult = scheduleReviewItem(targetItem, rating, timestamp, retention);
+      await db.reviewItems.put(scheduleResult.item);
+      await db.reviews.add({
+        id: crypto.randomUUID(),
+        reviewItemId: scheduleResult.item.id,
+        cardId: card.id,
+        sessionId,
+        rating,
+        fsrsRating: scheduleResult.fsrsRating,
+        fsrsLog: scheduleResult.fsrsLog,
+        durationMs,
+        timestamp,
+        dayKey,
+        studyMode: 'single'
+      });
+    }
+
+    if (updatedCard) {
+      await db.cards.put(updatedCard);
+    }
+
+    const previousReviewCount = await db.reviews.count();
     const priorAverage = settings?.avgSecondsPerCard ?? defaultSettings.avgSecondsPerCard;
-    const average = previousReviewCount === 0
+    const average = previousReviewCount <= 1
       ? durationMs / 1000
-      : (priorAverage * previousReviewCount + durationMs / 1000) / (previousReviewCount + 1);
-    await db.settings.put({
-      ...(settings ?? defaultSettings),
+      : (priorAverage * (previousReviewCount - 1) + durationMs / 1000) / previousReviewCount;
+
+    await db.settings.update('settings', {
       avgSecondsPerCard: Math.max(1, average)
     });
   });
 }
-
-
 
 export async function countReviews(): Promise<number> {
   return db.reviews.count();

@@ -1,15 +1,28 @@
 import { motion, useReducedMotion } from 'framer-motion';
 import type { KeyboardEvent } from 'react';
+import { RichText } from './RichText';
 
 type StudyCardProps = {
   front: string;
   back: string;
+  explanation?: string | null;
+  topicName?: string;
+  labelTag?: string;
   flipped: boolean;
   wrong: boolean;
   onFlip: () => void;
 };
 
-export function StudyCard({ front, back, flipped, wrong, onFlip }: StudyCardProps) {
+export function StudyCard({
+  front,
+  back,
+  explanation,
+  topicName,
+  labelTag,
+  flipped,
+  wrong,
+  onFlip
+}: StudyCardProps) {
   const reduceMotion = useReducedMotion();
 
   function onKeyDown(event: KeyboardEvent<HTMLDivElement>) {
@@ -21,7 +34,20 @@ export function StudyCard({ front, back, flipped, wrong, onFlip }: StudyCardProp
 
   const face = (side: 'front' | 'back') => (
     <div className={`study-face study-face-${side}`} aria-hidden={(side === 'back') !== flipped}>
-      <div className="study-face-body">{side === 'front' ? front : back}</div>
+      {(topicName || labelTag) && (
+        <div className="study-card-meta">
+          {topicName && <span className="study-card-topic">{topicName}</span>}
+          {labelTag && <span className="study-card-label">{labelTag}</span>}
+        </div>
+      )}
+      <div className="study-face-body">
+        <RichText text={side === 'front' ? front : back} />
+        {side === 'back' && explanation && (
+          <div className="study-card-explanation">
+            <RichText text={explanation} />
+          </div>
+        )}
+      </div>
       <small>{side === 'front' ? 'Tap to reveal answer' : 'Tap to see question'}</small>
     </div>
   );

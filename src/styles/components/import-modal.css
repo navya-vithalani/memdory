@@ -1,0 +1,205 @@
+/* Bottom-sheet import modal following design tokens */
+.import-modal-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
+  max-height: 85dvh;
+  overflow-y: auto;
+  background: var(--surface);
+  border-radius: var(--radius-large) var(--radius-large) 0 0;
+  padding: 20px 20px calc(var(--safe-bottom) + 20px);
+  box-shadow: 0 -8px 32px var(--shadow-soft);
+  z-index: 999;
+}
+
+.import-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.import-modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--navy);
+}
+
+.import-step {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.import-choose-btn {
+  width: 100%;
+  margin-top: 10px;
+}
+
+.import-file-name {
+  margin: 0;
+  font-size: 14px;
+  color: var(--ink-soft);
+}
+
+.import-mode-group {
+  border: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.import-mode-group legend {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+
+.import-mode-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  cursor: pointer;
+  transition: border-color var(--motion-fast) ease;
+}
+
+.import-mode-option.active {
+  border-color: var(--indigo);
+  background: var(--indigo-tint);
+}
+
+.import-mode-option input {
+  margin-top: 3px;
+  accent-color: var(--indigo);
+}
+
+.import-mode-option strong {
+  display: block;
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.import-mode-option small {
+  display: block;
+  color: var(--ink-soft);
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.import-step-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  gap: 12px;
+}
+
+.import-stats-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.import-stat-chip {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--indigo-tint);
+  color: var(--indigo);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.import-stat-chip.updated {
+  background: color-mix(in srgb, var(--medium) 18%, var(--surface));
+  color: var(--medium);
+}
+
+.import-stat-chip.skipped {
+  background: color-mix(in srgb, var(--hard) 20%, var(--surface));
+  color: #8a5d00;
+}
+
+.import-toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+  cursor: pointer;
+  margin-top: 4px;
+}
+
+.import-toggle-label input {
+  accent-color: var(--indigo);
+  width: 18px;
+  height: 18px;
+}
+
+.import-errors-container {
+  border-radius: var(--radius-card);
+  background: color-mix(in srgb, var(--wrong) 10%, var(--surface));
+  padding: 10px 14px;
+}
+
+.import-errors-toggle {
+  color: var(--wrong);
+  font-weight: 800;
+  font-size: 13px;
+}
+
+.import-error-list {
+  margin: 8px 0 0;
+  padding-left: 20px;
+  max-height: 120px;
+  overflow-y: auto;
+  font-size: 12px;
+  color: var(--wrong);
+}
+
+.import-error-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: var(--radius-card);
+  background: color-mix(in srgb, var(--wrong) 15%, var(--surface));
+  color: var(--wrong);
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.import-mascot-inline {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+}
+
+.import-step-success {
+  align-items: center;
+  text-align: center;
+  padding: 16px 0;
+}
+
+.import-success-mascot {
+  width: 80px;
+  height: 80px;
+}
+
+.import-step-success h4 {
+  margin: 10px 0 4px;
+  font-size: 20px;
+  color: var(--navy);
+}
