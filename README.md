@@ -1,6 +1,6 @@
-# remembree
+# memdory
 
-remembree is a mobile-first flashcard and notes app for daily study. The project is built with Vite, React, TypeScript, Dexie, and a pure core logic layer for scheduler, streak, and importer behaviour.
+memdory is a mobile-first flashcard and notes app for daily study. The project is built with Vite, React, TypeScript, Dexie, and a pure core logic layer for scheduler, streak, and importer behaviour.
 
 ## Run and verify
 

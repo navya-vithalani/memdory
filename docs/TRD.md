@@ -1,4 +1,4 @@
-# Remembry: Technical Requirements (v1)
+# memdory: Technical Requirements (v1)
 
 ## 1. Stack
 | Concern | Choice |

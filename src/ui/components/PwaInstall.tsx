@@ -71,7 +71,7 @@ export function PwaInstall() {
   return (
     <aside className="pwa-install" aria-label="Install app">
       <button className="install-button" onClick={() => void install()}>
-        {installPrompt ? 'Install remembree' : 'Add to Home Screen'}
+        {installPrompt ? 'Install memdory' : 'Add to Home Screen'}
       </button>
       {showInstructions && <p className="install-instructions">{getInstallInstructions()}</p>}
       {error && <p className="error-message" role="alert">{error}</p>}

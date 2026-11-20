@@ -69,4 +69,8 @@ export type SettingsRecord = {
   lastBackupAt: number | null;
   showTags?: boolean;
   showMnemoInSession?: boolean;
+  /** Mnemo's spot in the study screen, as 0-1 fractions of the free space, plus his size multiplier. */
+  mnemoX?: number;
+  mnemoY?: number;
+  mnemoScale?: number;
 };

@@ -1,4 +1,4 @@
-# Remembry: Design (v1)
+# Memdory: Design (v1)
 
 ## 1. Vibe
 Fun, alive, polished; never childish. Calm light surfaces, confident indigo, one warm orange for actions, and a wave motif tying together ocean, Wi-Fi and signal. Motion is springy and purposeful.

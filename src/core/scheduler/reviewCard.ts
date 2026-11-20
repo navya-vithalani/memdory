@@ -1,15 +1,14 @@
 import { createEmptyCard, forgetting_curve, fsrs, Rating, State, type Card as FsrsCard, type Grade } from 'ts-fsrs';
 import type { CardRecord, ReviewRating } from '../../types';
+import { getSchedulerRating } from './ratingMap';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-const ratingToFsrs: Record<ReviewRating, Grade> = {
+const gradeByName: Record<'easy' | 'good' | 'hard' | 'again', Grade> = {
   easy: Rating.Easy,
-  medium: Rating.Good,
+  good: Rating.Good,
   hard: Rating.Hard,
-  partial: Rating.Hard,
-  blank: Rating.Again,
-  wrong: Rating.Again
+  again: Rating.Again
 };
 
 function getState(value: number): State {
@@ -39,7 +38,7 @@ export function scheduleCardReview(card: CardRecord, rating: ReviewRating, now: 
     scheduled_days: lastReview ? Math.max(0, (card.due - lastReview.getTime()) / DAY_MS) : 0,
     ...(lastReview ? { last_review: lastReview } : {})
   };
-  const result = fsrs().repeat(fsrsCard, nowDate)[ratingToFsrs[rating]];
+  const result = fsrs().repeat(fsrsCard, nowDate)[gradeByName[getSchedulerRating(rating).fsrs]];
   const scheduledDue = rating === 'partial'
     ? now + Math.max(DAY_MS, (result.card.due.getTime() - now) / 2)
     : result.card.due.getTime();

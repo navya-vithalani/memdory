@@ -1,2 +1,8 @@
 dist
 node_modules
+*.tsbuildinfo
+tsc-output.txt
+# Compiled copies of the Vite config; vite.config.ts is the only source of truth
+vite.config.js
+vite.config.d.ts
+.DS_Store

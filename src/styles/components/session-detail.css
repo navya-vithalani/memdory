@@ -1,0 +1,24 @@
+.session-row-clickable { display: flex; align-items: center; gap: 10px; }
+.session-row-open { display: flex; flex: 1; min-width: 0; align-items: center; justify-content: space-between; gap: 12px; padding: 0; background: none; color: inherit; text-align: left; }
+.session-row-open:active { opacity: 0.7; }
+.session-row-clickable .session-row-resume-button { flex: 0 0 auto; align-self: center; }
+
+.session-detail .muted { margin-top: 4px; }
+.detail-counts { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0 4px; }
+.detail-list { display: grid; gap: 2px; margin: 10px 0 0; padding: 0; list-style: none; }
+.detail-row { display: grid; grid-template-columns: 24px 1fr auto; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.detail-row:last-child { border-bottom: 0; }
+.detail-index { color: var(--ink-soft); font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.detail-front { display: -webkit-box; overflow: hidden; font-size: 14px; font-weight: 700; line-height: 1.35; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow-wrap: anywhere; }
+.detail-meta { display: grid; justify-items: end; gap: 2px; }
+.detail-meta small { color: var(--ink-soft); font-size: 11px; font-variant-numeric: tabular-nums; }
+.detail-remaining { margin-top: 12px; }
+
+.rating-pill { display: inline-block; padding: 3px 10px; border-radius: 999px; color: #fff; font-size: 11px; font-weight: 800; white-space: nowrap; }
+.rating-pill-easy { background: var(--easy); color: #0b2a22; }
+.rating-pill-medium { background: var(--medium); }
+.rating-pill-hard { background: var(--hard); color: #3a2a00; }
+.rating-pill-partial { background: var(--partial); }
+.rating-pill-blank { background: var(--blank); }
+.rating-pill-wrong { background: var(--wrong); }
+.session-row-clickable .session-row-resume-button { min-height: 44px; padding-inline: 16px; }

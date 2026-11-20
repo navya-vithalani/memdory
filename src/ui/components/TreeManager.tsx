@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { flattenTree, isValidTreeParent } from '../../hooks/useTree';
+import { flattenTree } from '../../hooks/useTree';
 import { getDescendantIds } from '../../core/tree/tree';
 import type { TreeNode } from '../../types';
 import type { TreeActions } from '../../hooks/useTree';

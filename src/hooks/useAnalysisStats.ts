@@ -51,7 +51,6 @@ export function useAnalysisStats() {
     let active = true;
     void Promise.all([db.cards.toArray(), db.reviews.toArray(), db.nodes.toArray()]).then(([cards, reviews, nodes]) => {
       const now = new Date();
-      const todayKey = dayKey(now);
       const countsByDay = new Map<string, number>();
       const accuracyByDay = new Map<string, { total: number; correct: number }>();
       const ratingCounts = new Map<ReviewRating, number>(ratingLabels.map((rating) => [rating, 0]));

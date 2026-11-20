@@ -36,9 +36,9 @@ body { overflow: hidden; overscroll-behavior: none; }
 }
 
 /* Study session is immersive: no header, tab bar or install prompt */
-.app-frame:has(.study-screen) .app-header,
-.app-frame:has(.study-screen) .tab-bar,
-.app-frame:has(.study-screen) .pwa-install { display: none; }
+.app-frame:has(.study-screen, .study-end, .celebration-overlay) .app-header,
+.app-frame:has(.study-screen, .study-end, .celebration-overlay) .tab-bar,
+.app-frame:has(.study-screen, .study-end, .celebration-overlay) .pwa-install { display: none; }
 
 @media (min-width: 600px) {
   .app-shell { align-items: center; padding: 24px 12px; }

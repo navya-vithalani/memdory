@@ -1,7 +1,7 @@
 import Dexie, { type Table } from 'dexie';
 import type { CardRecord, NoteRecord, ReviewRecord, SessionRecord, SettingsRecord, TreeNode } from '../types';
 
-class remembreeDb extends Dexie {
+class memdoryDb extends Dexie {
   nodes!: Table<TreeNode, string>;
   notes!: Table<NoteRecord, string>;
   cards!: Table<CardRecord, string>;
@@ -10,7 +10,7 @@ class remembreeDb extends Dexie {
   settings!: Table<SettingsRecord, string>;
 
   constructor() {
-    super('remembree-db');
+    super('memdory-db');
     this.version(1).stores({
       nodes: 'id, parentId, createdAt',
       notes: 'id, nodeId, updatedAt',
@@ -50,7 +50,7 @@ class remembreeDb extends Dexie {
   }
 }
 
-export const db = new remembreeDb();
+export const db = new memdoryDb();
 export const defaultSettings: SettingsRecord = {
   id: 'settings',
   theme: 'light',

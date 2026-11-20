@@ -19,7 +19,7 @@ export function AppHeader({ onMenu, menuOpen }: AppHeaderProps) {
         <span />
         <span />
       </button>
-      <Link to="/" className="header-title">Remembree</Link>
+      <Link to="/" className="header-title">memdory</Link>
       <Link to="/profile" className="header-mnemo" aria-label="Open profile"><Mnemo mood="happy" /></Link>
     </header>
   );

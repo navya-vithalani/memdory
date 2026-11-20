@@ -1,7 +1,7 @@
-# Remembry: Product Requirements (v1)
+# memdory: Product Requirements (v1)
 
 ## 1. Summary
-Remembry is a personal, offline-first flashcard and notes app for exam prep (JEE/BITSAT first, any subject later). It runs as an installable PWA on Android. The mascot is **Mnemo**, a clownfish. The theme is **waves**: ocean, Wi-Fi arcs, signal.
+memdory is a personal, offline-first flashcard and notes app for exam prep (JEE/BITSAT first, any subject later). It runs as an installable PWA on Android. The mascot is **Mnemo**, a clownfish. The theme is **waves**: ocean, Wi-Fi arcs, signal.
 
 **Vibe:** fun, alive and polished, never childish. Calm surfaces, playful motion, one warm accent.
 

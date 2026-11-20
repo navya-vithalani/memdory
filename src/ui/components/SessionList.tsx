@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { SessionDetailModal } from './SessionDetailModal';
 import type { SessionRecord, TreeNode } from '../../types';
 
 type SessionListProps = {
@@ -9,6 +10,7 @@ type SessionListProps = {
 
 export function SessionList({ sessions, nodes, onResume }: SessionListProps) {
   const [query, setQuery] = useState('');
+  const [selected, setSelected] = useState<SessionRecord | null>(null);
   const scopeName = (id: string | null) => nodes.find((node) => node.id === id)?.name ?? 'All topics';
   const text = query.trim().toLowerCase();
   const visible = sessions.filter(
@@ -43,34 +45,48 @@ export function SessionList({ sessions, nodes, onResume }: SessionListProps) {
           const isCompleted = session.status === 'completed';
           const isInProgress = session.status === 'in-progress';
           return (
-            <div className="session-row" key={session.id}>
-              <div>
-                <strong>{scopeName(session.scopeNodeId)}</strong>
-                <small>
-                  {new Date(session.startedAt).toLocaleDateString()} · {session.mode.replaceAll('-', ' ')}
-                </small>
-              </div>
-              <div className="session-row-meta">
-                <span>
-                  {session.completedCount}/{session.plannedCount} cards
-                </span>
-                <span className={`status-badge ${isCompleted ? 'completed' : 'incomplete'}`}>
-                  {isCompleted ? 'Completed' : 'Incomplete'}
-                </span>
-                {isInProgress && onResume && (
-                  <button
-                    type="button"
-                    className="session-row-resume-button"
-                    onClick={() => onResume(session.id)}
-                  >
-                    Resume
-                  </button>
-                )}
-              </div>
+            <div className="session-row session-row-clickable" key={session.id}>
+              <button
+                type="button"
+                className="session-row-open"
+                aria-label={`View answers for ${scopeName(session.scopeNodeId)}, ${new Date(session.startedAt).toLocaleDateString()}`}
+                onClick={() => setSelected(session)}
+              >
+                <div>
+                  <strong>{scopeName(session.scopeNodeId)}</strong>
+                  <small>
+                    {new Date(session.startedAt).toLocaleDateString()} · {session.mode.replaceAll('-', ' ')}
+                  </small>
+                </div>
+                <div className="session-row-meta">
+                  <span>
+                    {session.completedCount}/{session.plannedCount} cards
+                  </span>
+                  <span className={`status-badge ${isCompleted ? 'completed' : 'incomplete'}`}>
+                    {isCompleted ? 'Completed' : isInProgress ? 'Incomplete' : 'Discarded'}
+                  </span>
+                </div>
+              </button>
+              {isInProgress && onResume && (
+                <button type="button" className="session-row-resume-button" onClick={() => onResume(session.id)}>
+                  Continue
+                </button>
+              )}
             </div>
           );
         })}
       </section>
+      {selected && (
+        <SessionDetailModal
+          session={selected}
+          scopeName={scopeName(selected.scopeNodeId)}
+          onClose={() => setSelected(null)}
+          onContinue={(id) => {
+            setSelected(null);
+            onResume?.(id);
+          }}
+        />
+      )}
     </>
   );
 }

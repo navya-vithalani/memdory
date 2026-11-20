@@ -9,7 +9,7 @@ import {
 } from '../core/streak/streak';
 import { getDescendantIds } from '../core/tree/tree';
 import { db } from '../data/db';
-import type { CardRecord, SessionRecord, SettingsRecord, TreeNode } from '../types';
+import type { SessionRecord, SettingsRecord, TreeNode } from '../types';
 
 const AT_RISK_RECALL = 0.9;
 

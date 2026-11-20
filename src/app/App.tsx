@@ -5,7 +5,7 @@ import { PwaInstall } from '../ui/components/PwaInstall';
 import { AppHeader } from '../ui/components/AppHeader';
 import { AmbientBackground } from '../ui/components/AmbientBackground';
 import { AppMenu } from '../ui/components/AppMenu';
-import { useSettings } from '../hooks/useSettings';
+import { SettingsProvider, useSettings } from '../hooks/useSettings';
 
 const HomeScreen = lazy(() => import('../ui/screens/HomeScreen').then((module) => ({ default: module.HomeScreen })));
 const NotesScreen = lazy(() => import('../ui/screens/NotesScreen').then((module) => ({ default: module.NotesScreen })));
@@ -15,7 +15,7 @@ const BrowseScreen = lazy(() => import('../ui/screens/BrowseScreen').then((modul
 const SettingsScreen = lazy(() => import('../ui/screens/SettingsScreen').then((module) => ({ default: module.SettingsScreen })));
 const ProfileScreen = lazy(() => import('../ui/screens/ProfileScreen').then((module) => ({ default: module.ProfileScreen })));
 
-export default function App() {
+function AppContent() {
   const { settings, ready, error } = useSettings();
   const [storageError, setStorageError] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
@@ -57,5 +57,13 @@ export default function App() {
         <AppMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
       </div>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <SettingsProvider>
+      <AppContent />
+    </SettingsProvider>
   );
 }

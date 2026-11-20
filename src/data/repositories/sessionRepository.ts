@@ -1,5 +1,5 @@
 import { db } from '../db';
-import type { ReviewRecord, SessionRecord, StudyMode } from '../../types';
+import type { CardRecord, ReviewRecord, SessionRecord, StudyMode } from '../../types';
 
 export interface CreateSessionParams {
   startedAt?: number;
@@ -114,4 +114,28 @@ export async function listAllCompletedSessions(): Promise<SessionRecord[]> {
 
 export async function getSessionReviews(sessionId: string): Promise<ReviewRecord[]> {
   return db.reviews.where('sessionId').equals(sessionId).toArray();
+}
+
+export type SessionReviewItem = { review: ReviewRecord; card: CardRecord | null };
+
+export type SessionDetail = {
+  session: SessionRecord;
+  items: SessionReviewItem[];
+  /** Cards still waiting in an unfinished session's queue. */
+  remaining: CardRecord[];
+};
+
+export async function getSessionDetail(sessionId: string): Promise<SessionDetail | null> {
+  const session = await db.sessions.get(sessionId);
+  if (!session) return null;
+  const reviews = (await getSessionReviews(sessionId)).sort((a, b) => a.timestamp - b.timestamp);
+  const waitingIds = session.status === 'completed' ? [] : session.queueCardIds.slice(session.position);
+  const ids = [...new Set([...reviews.map((review) => review.cardId), ...waitingIds])];
+  const cards = await db.cards.bulkGet(ids);
+  const byId = new Map(cards.filter((card): card is CardRecord => card !== undefined).map((card) => [card.id, card]));
+  return {
+    session,
+    items: reviews.map((review) => ({ review, card: byId.get(review.cardId) ?? null })),
+    remaining: waitingIds.map((id) => byId.get(id)).filter((card): card is CardRecord => card !== undefined)
+  };
 }

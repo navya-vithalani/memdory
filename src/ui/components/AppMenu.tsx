@@ -51,6 +51,7 @@ export function AppMenu({ open, onClose }: AppMenuProps) {
         <>
           <motion.div key="scrim" className="menu-scrim" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }} onClick={onClose} />
           <motion.aside key="drawer" ref={drawerRef} tabIndex={-1} className="menu-drawer" role="dialog" aria-modal="true" aria-label="Menu" initial={{ x: '-100%' }} animate={{ x: 0 }} exit={{ x: '-100%' }} transition={slide}>
+            <button className="menu-close" aria-label="Close menu" onClick={onClose}>{icon(<path d="M6 6l12 12M18 6 6 18" />)}</button>
             <div className="menu-brand"><Mnemo mood="happy" /><strong>{APP_NAME}</strong></div>
             <nav className="menu-list">
               {items.map((item) => (

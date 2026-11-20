@@ -8,8 +8,8 @@ const pwaPlugin = VitePWA({
   includeAssets: ['Icons/apple-touch-icon.png', 'Icons/icon-192.png', 'Icons/icon-512.png'],
   manifest: {
     id: '/',
-    name: 'Remembree',
-    short_name: 'Remembree',
+    name: 'memdory',
+    short_name: 'memdory',
     description: 'Offline-first flashcards and notes for daily study.',
     theme_color: '#1E2A78',
     background_color: '#F6F7FD',

@@ -46,7 +46,6 @@ export function SettingsScreen() {
   useEffect(() => {
     setNewCardsPerDay(`${settings.newCardsPerDay}`);
     setDayStartMinutes(`${settings.dayStartMinutes}`);
-    document.documentElement.dataset.theme = settings.theme;
   }, [settings]);
 
   async function saveNumber(field: 'newCardsPerDay' | 'dayStartMinutes', value: number) {
@@ -76,7 +75,7 @@ export function SettingsScreen() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `remembree-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      link.download = `memdory-backup-${new Date().toISOString().slice(0, 10)}.json`;
       link.click();
       window.setTimeout(() => URL.revokeObjectURL(url), 1000);
       await updateSettings({ lastBackupAt: backupTimestamp });
@@ -90,7 +89,7 @@ export function SettingsScreen() {
 
   async function importData(file?: File) {
     if (!file) return;
-    if (backupMode === 'replace' && !window.confirm('Replace all Remembree data on this device with this backup? This cannot be undone.')) return;
+    if (backupMode === 'replace' && !window.confirm('Replace all memdory data on this device with this backup? This cannot be undone.')) return;
     try {
       const restoredSettings = await restoreBackup(await file.text(), backupMode);
       if (restoredSettings) await updateSettings(restoredSettings);
@@ -156,7 +155,7 @@ export function SettingsScreen() {
         {backupStatus && <p className="backup-status" role="status">{backupStatus}</p>}
       </section>
       <section className="stacked-panel about-panel">
-        <div className="profile-section-heading"><p className="eyebrow">About</p><h2>Remembree</h2></div>
+        <div className="profile-section-heading"><p className="eyebrow">About</p><h2>memdory</h2></div>
         <p className="muted">Offline-first flashcards and notes with FSRS spaced repetition.</p>
         <details className="study-days-debug">
           <summary>Study days (debug: {studyDays.length})</summary>
@@ -173,7 +172,7 @@ export function SettingsScreen() {
           </div>
         </details>
       </section>
-      <p className="profile-version">Remembree <span>·</span> v0.1.0</p>
+      <p className="profile-version">memdory <span>·</span> v0.1.0</p>
     </main>
   );
 }

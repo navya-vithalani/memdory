@@ -1,8 +1,8 @@
-# Remembree: Change Specification (v1.1)
+# memdory: Change Specification (v1.1)
 
 > **Agent: read this entire file before writing any code.** All decisions below are final. Do not ask questions; do not substitute your own design. Work phase by phase, in order.
 
-App name everywhere (UI, manifest, README, `<title>`, file names): **Remembree**. Fix the misspelt test file `remembery-core.test.ts` → `remembree-core.test.ts`.
+App name everywhere (UI, manifest, README, `<title>`, file names): **memdory**. 
 
 ---
 
@@ -43,7 +43,7 @@ html, body, #root { height: 100%; margin: 0; }
 
 ### 1.2 Header
 - **Left:** hamburger button (3 bars, 44px target) opening the menu (1.4).
-- **Centre:** the text "Remembree" (Nunito 800, `--navy`). **No logo or "R" mark.**
+- **Centre:** the text "memdory" (Nunito 800, `--navy`). **No logo or "R" mark.**
 - **Right:** small Mnemo side view (`happy`, ~36px) with a slow swim bob. Tapping it opens Profile (`/profile`).
 - Transparent over `--bg`, subtle bottom shadow only when `.app-main` is scrolled.
 
@@ -54,7 +54,7 @@ Order left to right: **Notes · Home · Cards**. Remove the Analysis tab (see 1.
 - Notes and Cards: 24px icon + 12px label, `--ink-soft`; active = `--indigo` with a small wave-shaped underline (8px wide) beneath the label.
 
 ### 1.4 Menu (drawer from the left)
-Slides in from the left (width 84%, max 340px), scrim `rgba(20,26,77,0.4)`, closes on scrim tap, item tap, Escape, or back. Focus-trapped. Header area: Mnemo side-happy + "Remembree", with a faint wave decoration. Items (icon + label, 52px rows):
+Slides in from the left (width 84%, max 340px), scrim `rgba(20,26,77,0.4)`, closes on scrim tap, item tap, Escape, or back. Focus-trapped. Header area: Mnemo side-happy + "memdory", with a faint wave decoration. Items (icon + label, 52px rows):
 1. **Import** → opens the Import flow (Phase 4 UI; until then the existing card import)
 2. **Start session** → session setup
 3. **Analysis** → `/analysis`
@@ -96,7 +96,7 @@ Below, in order: **Nemo summary card** (6.2), **search field** ("Search past ses
 #### What changed
 
 Header and tab bar: I think the old problem was that the page itself could scroll when the mobile URL bar collapsed. The window is now locked and only the screen content scrolls, so the header and tab bar stay pinned. Please test this on your phone.
-Header: a hamburger on the left, “Remembree” in the middle and Mnemo on the right, which opens Profile. The “R” logo is gone.
+Header: a hamburger on the left, “memdory” in the middle and Mnemo on the right, which opens Profile. The “R” logo is gone.
 Tabs: Notes, Home and Cards. Home is a raised 68px indigo circle with a notch cut into the bar, a gentle bob and a ripple when active.
 Menu: a drawer from the left with Import, Start session, Analysis, Streak & activity, Backup, Settings, About and Connect (marked “Soon”).
 Home: the “X of 20 cards” ring is removed.
@@ -151,8 +151,29 @@ When the **first completed session of a study day** finishes: full-screen overla
 - Add a temporary "Study days" debug list in Settings → About showing counted day keys.
 
 ### Style checklist (Phase 2)
-- [ ] Drops: indigo outline, `--orange` water, 3-letter day labels, Monday first
-- [ ] Celebration uses only token colours; Mnemo mood `excited`
+- [x] Drops: blue outline for today and future days, grey outline for missed days, filled blue drop for completed days (changed from the original indigo ring and `--orange` water on request), 3-letter day labels, Monday first
+- [x] Celebration uses only token colours; Mnemo mood `excited`
+
+### Phase 2 review
+
+#### What changed
+
+Sessions: every session now has a real status (in progress, completed or discarded), a saved queue and a position, so closing the app or leaving mid-session keeps your place. Starting a new session while one is open asks Resume or Discard.
+Streak: it is counted from completed sessions only, using the 03:30 study day. The old 365-day cap is gone, so long streaks count correctly.
+Weekly widget: shows the real Monday to Sunday week. Each day is just a drop: filled blue if you completed a session, a blue outline for today and days still to come, and a grey outline for days you missed. The extra ring around today is removed.
+Celebration: it was never appearing. The session list was loaded before the session was marked completed, so the check always said no. It now runs after completion, over all completed sessions, and shows the old and new streak.
+Past sessions: every row opens a detail sheet listing each card with the rating you gave it, how long it took, and a count per rating. Unfinished sessions show how many cards are still waiting and a **Continue session** button (also on the row itself).
+Resuming: the "% remembered" figure used to restart at 0 after resuming. It is now rebuilt from the saved reviews, and a card already marked wrong will not be re-queued a second time.
+Settings are now loaded once and shared by every screen (before, each screen had its own copy, so Mnemo's position and the theme could disagree).
+Two layout bugs that broke overlays: screens kept a leftover animation transform that trapped every pop-up inside the screen, and a generic `.app-frame > *` rule forced the menu drawer and the celebration into normal page flow. The drawer now covers the screen and has its own close button.
+Housekeeping: compiled copies of the Vite config and the TypeScript build files are no longer committed (a stale `vite.config.js` was silently overriding `vite.config.ts`). Rating-to-scheduler mapping now lives only in `ratingMap.ts`.
+
+#### Placeholders and known gaps
+
+Discarded sessions can be viewed but not continued. Discarding is deliberate, so I left it that way.
+The celebration drop is still orange while the weekly drops are blue.
+Session history shows the 20 most recent sessions.
+The "Update ready" message from the PRD is not built yet (Phase 7, PWA).
 
 ---
 
@@ -191,10 +212,28 @@ Each **button is itself a curved arc-shaped segment**; there are **no background
 - Respect Settings → "Show Mnemo in sessions".
 
 ### Style checklist (Phase 3)
-- [ ] Rating control is shaped buttons only, curved text, rounded corners, no lines
-- [ ] Wrong dot sits inside the arc ends
-- [ ] Study screen contains card, control, Mnemo, thin top bar, nothing else
-- [ ] Mnemo drag + pinch work on a phone; rating buttons remain tappable
+- [x] Rating control is shaped buttons only, curved text, rounded corners, no lines
+- [x] Wrong dot sits inside the arc ends
+- [x] Study screen contains card, control, Mnemo, thin top bar, nothing else
+- [x] Mnemo drag + pinch work on a phone; rating buttons remain tappable (checked with simulated touch and mouse in a headless browser, please confirm with real fingers)
+
+### Phase 3 review
+
+#### What changed
+
+Study screen: full screen, with no header or tab bar. It has a thin top bar (close ✕, a wave-filled progress bar and a timer showing how long this sitting has lasted), the card, the rating control and Mnemo. The end-of-session and celebration screens are full screen too.
+Card: sits at the top, up to 55% of the screen height, and flips in 3D with a spring. Long text scrolls inside the card. Line breaks in answers are kept. After you have seen the answer once, flipping back to the question does not lock the rating control again. When a new card arrives it slides in from the right. With reduced motion the flip becomes a quick fade.
+Rating control: the old line-based version is deleted. It is now one SVG (`WifiRating`) with five curved segments and the Wrong dot, built from the geometry in the spec (`core/rating/wifiGeometry.ts`, unit tested). Labels are curved, corners are rounded, and the control lights up from the dot outwards after the flip. Tapping a segment gives a small press animation and a short vibration (longer for Wrong). Wrong also flashes the card edge and shakes it.
+Mnemo: drag him anywhere, pinch with two fingers (or Ctrl + wheel on desktop) to resize from 0.6x to 1.8x. His position and size are saved in settings and always clamped inside the screen. He sits under the rating control, so he never blocks it. He reacts to each rating: happy and a hop, a wiggle, sad, or shocked and a shake. Settings > "Show Mnemo in sessions" turns him off.
+Code structure: the session logic moved out of the component into `useStudySession`, and the screen is split into `StudyTopBar`, `StudyCard`, `WifiRating` and `MnemoCompanion`. Study and rating styles now live in their own files and the old rules are removed from `components.css`.
+
+#### Placeholders for later phases
+
+Tags on the card: no tags exist in the data yet, so nothing is shown. They arrive with the Phase 4 schema and the Phase 7 tag UI.
+Dragging uses pointer events instead of Framer Motion's `drag`, because the pinch gesture needs to share the same touch handling.
+The middle band's segments are about 41px thick at a 320px-wide screen (the spec asks for 44px). They are wider than 44px along the arc, and on a 390px phone they are 46px thick.
+Mnemo's reaction settles back to neutral 1.4s after you rate, rather than 1.2s after the next card appears.
+Mnemo's front artwork is the existing asset; the blink and bob are the existing idle animations.
 
 ---
 
@@ -342,7 +381,7 @@ Support every mood file already in `src/assets/mascot/`: side `happy, excited, s
 Tags are small rounded pills with a pointed left end (like a luggage tag) connected by a thin string to the item (Browse cards, note rows; and 3.1 on the study card). Colours from the hashed indigo/cyan family. Sway ±3° over 4s, staggered per tag, disabled by Settings or reduced motion.
 
 ### 7.4 PWA and housekeeping
-- Add `remembry-icon-peek.svg` (supplied) to `public/`, generate icons from it with `@vite-pwa/assets-generator` (192, 512, **separate maskable 512** with the artwork inside the 80% safe zone, Apple 180). Manifest: `name`/`short_name` = Remembree; separate `purpose: 'any'` and `purpose: 'maskable'` entries pointing at different files.
+- Add `memdory-icon-peek.svg` (supplied) to `public/`, generate icons from it with `@vite-pwa/assets-generator` (192, 512, **separate maskable 512** with the artwork inside the 80% safe zone, Apple 180). Manifest: `name`/`short_name` = memdory; separate `purpose: 'any'` and `purpose: 'maskable'` entries pointing at different files.
 - README: update the screen list, import format, and the Phase notes.
 
 ### Final acceptance (whole app)

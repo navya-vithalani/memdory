@@ -34,7 +34,8 @@ export function WeeklyStreak({
             'weekly-streak-drop',
             day.isCompleted ? 'is-completed' : '',
             day.isToday ? 'is-today' : '',
-            day.isFuture ? 'is-future' : ''
+            day.isFuture ? 'is-future' : '',
+            !day.isCompleted && !day.isToday && !day.isFuture ? 'is-missed' : ''
           ].filter(Boolean).join(' ');
 
           const title = `${day.label}${day.isToday ? ' (Today)' : ''}: ${day.isCompleted ? 'Completed' : day.isFuture ? 'Upcoming' : 'Missed'}`;

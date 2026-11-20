@@ -12,7 +12,9 @@ import {
   createSession,
   getActiveSession,
   getSession,
+  getSessionReviews,
   importCards,
+  listAllCompletedSessions,
   listCardsInScope,
   listRecentSessions,
   previewCardImport,
@@ -99,6 +101,8 @@ export function useCards() {
     return updatedCard;
   }, []);
 
+  const loadReviews = useCallback(getSessionReviews, []);
+  const loadCompletedSessions = useCallback(listAllCompletedSessions, []);
   const saveProgress = useCallback(updateSessionProgress, []);
   const finish = useCallback(completeSession, []);
   const discard = useCallback(abandonSession, []);
@@ -112,6 +116,8 @@ export function useCards() {
     startSession,
     resumeSession,
     review,
+    loadReviews,
+    loadCompletedSessions,
     saveProgress,
     finish,
     discard,

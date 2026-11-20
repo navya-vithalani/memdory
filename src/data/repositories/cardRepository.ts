@@ -2,7 +2,7 @@ import { createEmptyCard, State } from 'ts-fsrs';
 import { getDescendantIds } from '../../core/tree/tree';
 import { parseCards, type ParsedCard } from '../../core/importers/cardParser';
 import { db, defaultSettings } from '../db';
-import type { CardRecord, ReviewRating, StudyMode } from '../../types';
+import type { CardRecord, ReviewRating } from '../../types';
 
 function normalizeFront(front: string): string {
   return front.normalize('NFKC').replace(/\s+/g, ' ').trim().toLocaleLowerCase();
@@ -103,8 +103,10 @@ export {
   getSession,
   listRecentSessions,
   listAllCompletedSessions,
-  getSessionReviews
+  getSessionReviews,
+  getSessionDetail
 } from './sessionRepository';
+export type { SessionDetail, SessionReviewItem } from './sessionRepository';
 
 export async function saveReview(
   card: CardRecord,

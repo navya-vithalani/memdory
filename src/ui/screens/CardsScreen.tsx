@@ -32,7 +32,6 @@ export function CardsScreen() {
   const [studyQueue, setStudyQueue] = useState<CardRecord[] | null>(null);
   const [sessionId, setSessionId] = useState('');
   const [sessionPosition, setSessionPosition] = useState(0);
-  const [sessionCompleted, setSessionCompleted] = useState(0);
   const [modal, setModal] = useState<Modal>(null);
   const [promptSession, setPromptSession] = useState<SessionRecord | null>(null);
   const [error, setError] = useState('');
@@ -64,7 +63,6 @@ export function CardsScreen() {
       setStudyQueue(result.cards);
       setSessionId(result.session.id);
       setSessionPosition(result.session.position);
-      setSessionCompleted(result.session.completedCount);
       setPromptSession(null);
       setModal(null);
       setError('');
@@ -122,7 +120,6 @@ export function CardsScreen() {
       setStudyQueue(cards);
       setSessionId(session.id);
       setSessionPosition(0);
-      setSessionCompleted(0);
       setModal(null);
       setError('');
     } catch (reason) {
@@ -146,7 +143,6 @@ export function CardsScreen() {
     setStudyQueue(null);
     setSessionId('');
     setSessionPosition(0);
-    setSessionCompleted(0);
     try {
       await refreshSessions();
     } catch (reason) {
@@ -160,7 +156,6 @@ export function CardsScreen() {
         sessionId={sessionId}
         cards={studyQueue}
         initialPosition={sessionPosition}
-        initialCompleted={sessionCompleted}
         onExit={() => void leaveSession()}
       />
     );

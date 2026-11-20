@@ -82,13 +82,9 @@ export function calculateStreakFromDayKeys(dayKeys: string[], now: number, daySt
   }
 
   let streak = 0;
-  for (let index = 0; index < 365; index += 1) {
-    if (uniqueDays.has(cursor)) {
-      streak += 1;
-      cursor = previousDateKey(cursor);
-      continue;
-    }
-    break;
+  while (uniqueDays.has(cursor)) {
+    streak += 1;
+    cursor = previousDateKey(cursor);
   }
 
   return streak;
@@ -168,4 +164,30 @@ export function isFirstCompletedSessionOfDay(
       s.completedAt < (target.completedAt as number)
   );
   return otherCompletedEarlier.length === 0;
+}
+
+export type StreakCelebration = { oldStreak: number; newStreak: number };
+
+/**
+ * Decides whether finishing `targetSessionId` earns the streak celebration.
+ * `sessions` must be loaded AFTER the target has been marked completed, and must hold every
+ * completed session (not just recent ones) so long streaks are counted correctly.
+ */
+export function getStreakCelebration(
+  sessions: Array<{ id: string; status: string; completedAt: number | null }>,
+  targetSessionId: string,
+  dayStartMinutes: number
+): StreakCelebration | null {
+  if (!isFirstCompletedSessionOfDay(sessions, targetSessionId, dayStartMinutes)) return null;
+  const target = sessions.find((session) => session.id === targetSessionId);
+  if (!target || target.completedAt === null) return null;
+  const targetDay = studyDayKey(target.completedAt, dayStartMinutes);
+  const otherDays = getCompletedStudyDays(
+    sessions.filter((session) => session.id !== targetSessionId) as StreakSession[],
+    dayStartMinutes
+  );
+  return {
+    oldStreak: calculateStreakFromDayKeys(otherDays, target.completedAt, dayStartMinutes),
+    newStreak: calculateStreakFromDayKeys([...otherDays, targetDay], target.completedAt, dayStartMinutes)
+  };
 }

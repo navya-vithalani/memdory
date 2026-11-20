@@ -52,10 +52,6 @@
   position: relative;
 }
 
-.weekly-streak-drop.is-future {
-  opacity: 0.38;
-}
-
 .weekly-streak-drop svg.drop-svg {
   width: 26px;
   height: 34px;
@@ -63,42 +59,27 @@
   position: relative;
 }
 
-/* Today indicator ring */
-.weekly-streak-drop.is-today::before {
-  content: '';
-  position: absolute;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  border: 2px solid var(--indigo);
-  pointer-events: none;
-}
-
+/* Drop states: completed = filled blue, today/future = empty blue outline, missed = grey outline */
 .drop-outline {
   fill: transparent;
-  stroke: var(--indigo);
-  stroke-width: 1.8;
+  stroke: var(--drop-water);
+  stroke-width: 2;
+  stroke-linejoin: round;
   transition: stroke var(--motion-standard) ease;
 }
-
-.weekly-streak-drop:not(.is-completed) .drop-outline {
-  stroke: color-mix(in srgb, var(--indigo) 35%, transparent);
-}
+.weekly-streak-drop.is-missed .drop-outline { stroke: var(--drop-missed); }
 
 .drop-water-wrapper {
   animation: water-rise 900ms ease-out forwards;
 }
 
 .drop-wave {
-  fill: var(--orange);
+  fill: var(--drop-water);
   animation: wave-drift 3s linear infinite;
 }
 
 .drop-wave.wave-2 {
-  fill: var(--orange-pressed);
+  fill: var(--drop-water-deep);
   opacity: 0.75;
   animation-duration: 2.7s;
   animation-direction: reverse;
@@ -119,7 +100,7 @@
 }
 
 .weekly-streak-drop.is-today .drop-day-label {
-  color: var(--indigo);
+  color: var(--drop-water);
   font-weight: 800;
 }
 

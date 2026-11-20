@@ -17,6 +17,9 @@
   --partial: #9b7bef;
   --blank: #8a93b8;
   --wrong: #ef5b6b;
+  --drop-water: #4a7bf7;
+  --drop-water-deep: #3563d9;
+  --drop-missed: #b7bcd8;
   --shadow-soft: rgba(69, 71, 214, 0.12);
   --shadow-card: 0 16px 38px rgba(48, 53, 146, 0.09);
   --line: rgba(69, 71, 214, 0.1);
