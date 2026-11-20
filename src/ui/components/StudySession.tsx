@@ -39,32 +39,6 @@ export function StudySession({ sessionId, cards, initialPosition = 0, onExit }: 
     [updateSettings]
   );
 
-  if (session.celebration) {
-    return (
-      <CompletionCelebration
-        oldStreak={session.celebration.oldStreak}
-        newStreak={session.celebration.newStreak}
-        onContinue={session.dismissCelebration}
-      />
-    );
-  }
-
-  if (session.finished) {
-    const minutes = Math.max(1, Math.round((Date.now() - startedAt.current) / 60000));
-    const percent = session.completed ? Math.round((session.correct / session.completed) * 100) : 0;
-    return (
-      <main className="screen study-end">
-        <Mnemo mood="excited" className="session-celebration-mascot" />
-        <p className="eyebrow">Session complete</p>
-        <h1>Nice work!</h1>
-        <p>{session.completed} reviews · {percent}% remembered</p>
-        <p>{minutes} {minutes === 1 ? 'minute' : 'minutes'}</p>
-        <button className="primary-button" onClick={onExit}>Done</button>
-        {session.error && <p className="error-message" role="alert">{session.error}</p>}
-      </main>
-    );
-  }
-
   const { current } = session;
   const slide = reduceMotion ? 0 : 56;
   const topicName = nodes.find((n) => n.id === current?.nodeId)?.name;
@@ -83,6 +57,29 @@ export function StudySession({ sessionId, cards, initialPosition = 0, onExit }: 
       active = false;
     };
   }, [current?.tagIds]);
+
+  if (session.finished) {
+    const minutes = Math.max(1, Math.round((Date.now() - startedAt.current) / 60000));
+    const percent = session.completed ? Math.round((session.correct / session.completed) * 100) : 0;
+    return (
+      <main className="screen study-end" ref={screenRef}>
+        {session.celebration && (
+          <CompletionCelebration
+            oldStreak={session.celebration.oldStreak}
+            newStreak={session.celebration.newStreak}
+            onContinue={session.dismissCelebration}
+          />
+        )}
+        <Mnemo mood="excited" className="session-celebration-mascot" />
+        <p className="eyebrow">Session complete</p>
+        <h1>Nice work!</h1>
+        <p>{session.completed} reviews · {percent}% remembered</p>
+        <p>{minutes} {minutes === 1 ? 'minute' : 'minutes'}</p>
+        <button className="primary-button" onClick={onExit}>Done</button>
+        {session.error && <p className="error-message" role="alert">{session.error}</p>}
+      </main>
+    );
+  }
 
   return (
     <main className="screen study-screen" ref={screenRef}>

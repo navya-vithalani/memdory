@@ -97,7 +97,7 @@ export function TreeManager({ nodes, actions, areaMastery = {} }: TreeManagerPro
               const childCount = nodes.filter((node) => node.parentId === root.id).length;
               return (
                 <button key={root.id} className={`area-switcher-card${activeNodeId === root.id ? ' active' : ''}`} onClick={() => setActiveNodeId(root.id)}>
-                  <span className={`area-emoji tone-${index % 4}`} aria-hidden="true">{['✿', '◈', '✦', '◎'][index % 4]}</span>
+                  <span className={`area-emoji tone-${index % 4}`} aria-hidden="true">{['✿', '◈', '◆', '◎'][index % 4]}</span>
                   <strong>{root.name}</strong>
                   <small>{childCount} {childCount === 1 ? 'topic' : 'topics'}</small>
                   <span className="mini-ring area-switcher-mastery" style={{ ['--value' as string]: areaMastery[root.id] ?? 0 }} aria-label={`${areaMastery[root.id] ?? 0}% mastery`}>
@@ -149,7 +149,7 @@ export function TreeManager({ nodes, actions, areaMastery = {} }: TreeManagerPro
                           </div>
                         ) : (
                           <button className="topic-open" onClick={() => setActiveNodeId(topic.id)}>
-                            <span className={`topic-bullet bullet-${index % 4}`} aria-hidden="true">{['✳', '◇', '✦', '○'][index % 4]}</span>
+                            <span className={`topic-bullet bullet-${index % 4}`} aria-hidden="true">{['✳', '◇', '◆', '○'][index % 4]}</span>
                             <span className="topic-title"><strong>{topic.name}</strong><small>{descendantCount} subtopics <span aria-hidden="true">·</span> open topic</small></span>
                             <span className="topic-arrow" aria-hidden="true">→</span>
                           </button>
@@ -162,15 +162,15 @@ export function TreeManager({ nodes, actions, areaMastery = {} }: TreeManagerPro
                     );
                   })}
                 </div>
-              ) : <div className="topics-empty"><span aria-hidden="true">✦</span><p>No topics yet. Add one to start organizing notes and cards.</p><button className="secondary-button" onClick={() => openCreate('topic')}>Create first topic</button></div>}
+              ) : <div className="topics-empty"><span aria-hidden="true">◆</span><p>No topics yet. Add one to start organizing notes and cards.</p><button className="secondary-button" onClick={() => openCreate('topic')}>Create first topic</button></div>}
             </section>
           )}
         </>
       ) : (
         <div className="topics-empty">
-          <span aria-hidden="true">✧</span>
-          <p>Every great study plan starts somewhere. Create your first area and give your ideas a home.</p>
-          <button className="primary-button" onClick={() => openCreate('area')}>Create a study area</button>
+          <span aria-hidden="true">◆</span>
+          <p>Every great plan starts somewhere. Create your first area and give your ideas a home.</p>
+          <button className="primary-button" onClick={() => openCreate('area')}>Create a learning area</button>
         </div>
       )}
       {error && <p className="error-message" role="alert">{error}</p>}

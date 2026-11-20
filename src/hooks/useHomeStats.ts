@@ -92,18 +92,22 @@ async function loadSnapshot(settings: SettingsRecord, nodes: TreeNode[]): Promis
 export function useHomeStats(settings: SettingsRecord, nodes: TreeNode[]) {
   const [snapshot, setSnapshot] = useState<HomeSnapshot | null>(null);
   const [error, setError] = useState('');
-  const refresh = useCallback(() => loadSnapshot(settings, nodes), [settings, nodes]);
+  const refresh = useCallback(async () => {
+    try {
+      const next = await loadSnapshot(settings, nodes);
+      setSnapshot(next);
+      setError('');
+      return next;
+    } catch (reason) {
+      const msg = reason instanceof Error ? reason.message : 'Could not load study progress.';
+      setError(msg);
+      throw reason;
+    }
+  }, [settings, nodes]);
 
   useEffect(() => {
     let active = true;
-    void refresh().then((next) => {
-      if (active) {
-        setSnapshot(next);
-        setError('');
-      }
-    }).catch((reason: unknown) => {
-      if (active) setError(reason instanceof Error ? reason.message : 'Could not load study progress.');
-    });
+    void refresh().catch(() => {});
     return () => {
       active = false;
     };

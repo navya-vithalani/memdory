@@ -555,14 +555,55 @@ The first tag (the card's label) shows as a chip above the question (4.9); other
 - README: update the screen list, import format, and the Phase notes.
 
 ### Final acceptance (whole app)
-- [ ] Tabs: Notes · Home · Cards; Analysis only via menu; Profile via header Mnemo/menu
-- [ ] Header and tab bar never leave the screen edges
-- [ ] One completed session counts for the day; incomplete sessions can be resumed
-- [ ] Study screen has only the card, Wi-Fi control and Mnemo
-- [ ] One import file can build areas, nodes, notes, cards and tags; the same file can be imported into a single node; imports can be undone
-- [ ] Full backup restores everything into a clean install; content export round-trips
-- [ ] Families study mode works with Got it / Blank / Wrong
-- [ ] Two-way cards schedule each direction separately
-- [ ] Tags appear in sessions, browse, notes and analysis
-- [ ] Mnemo moods wired as in 7.2
-- [ ] `npm test` and `npm run build` pass; style checklists ticked
+- [x] Tabs: Notes · Home · Cards; Analysis only via menu; Profile via header Mnemo/menu
+- [x] Header and tab bar never leave the screen edges
+- [x] One completed session counts for the day; incomplete sessions can be resumed
+- [x] Study screen has only the card, Wi-Fi control and Mnemo
+- [x] One import file can build areas, nodes, notes, cards and tags; the same file can be imported into a single node; imports can be undone
+- [x] Full backup restores everything into a clean install; content export round-trips
+- [x] Families study mode works with Got it / Blank / Wrong
+- [x] Two-way cards schedule each direction separately
+- [x] Tags appear in sessions, browse, notes and analysis
+- [x] Mnemo moods wired as in 7.2
+- [x] `npm test` and `npm run build` pass; style checklists ticked
+
+---
+
+## Phase 6 & Phase 7 review
+
+### What changed
+
+1. **Card Browser & Learning Map (`/cards/browse` & `/map`):**
+   - Built full Browse screen with top stat strip (`Total`, `Due`, `Fading`, `Traps`).
+   - Interactive topic tree with expandable subtopics, card count badges, and mastery meter bars.
+   - Expandable card cards displaying primary label tag, swaying luggage tags, bidirectional (`↔`) badges, star toggles, LaTeX mathematical rendering, inline Edit modal, and Delete confirmation.
+   - Direct integration as "Learning Map" tab in the dropdown menu drawer.
+
+2. **Rule-Based Mascot Insights Engine (Phase 6.2):**
+   - Implemented pure deterministic rule engine `buildInsights(stats)` in `src/core/stats/insights.ts` covering all 10 priority insight rules (incomplete session, streak milestones, at-risk streaks, struggling tags < 60%, confidently wrong traps, strong tags ≥ 90%, weakest topics, volume trends, velocity changes, and cold-start advice).
+   - Created `MnemoSummaryCard` component featuring front-view Mnemo matching mood, speech bubble with word-by-word fade-in animation, and direct shortcut links.
+   - Full 10-test unit suite in `src/core/__tests__/insights.test.ts`.
+
+3. **Analysis Screen Enhancement (Phase 6.3 & User Requests):**
+   - Removed all graph taglines/eyebrows above titles.
+   - Removed all star/sparkle decoration icons.
+   - Added global Topic and Tag filter controls affecting dashboards.
+   - Added `TopicMasteryChart` with horizontal bars and user's target retention reference line.
+   - Added `TagsDashboard` categorizing tags into Struggling (< 60%), In-Progress (60%-89%), and Strong (≥ 90%).
+
+4. **15 Specific User Requests & Bug Fixes:**
+   - **Item 1 (Import Modal):** Centered on screen, dark blurred backdrop blocking clicks, navbar remains visible.
+   - **Item 2 (Session End Blanking):** Fixed React hook call ordering bug in `StudySession.tsx` that crashed React on session finish; celebration portaled safely over `.study-end`.
+   - **Item 3 (Star Logos):** Removed all `✦` / `✧` sparkle icons across modals, tree manager, and analysis.
+   - **Item 4 (Plan Your Session):** Streamlined modal: removed "Make it count", 3-way toggle button group for focus mode with smooth transitions, removed minutes option (cards only), and placed "Starred only" and "Include new cards" side-by-side.
+   - **Item 5 (Touch Highlights & Pressed Feel):** Added `-webkit-tap-highlight-color: transparent` globally; buttons have matching pressed state with tactile scale and darkened tone.
+   - **Item 6 (Study Screen Mnemo):** Front-facing idle expressions; sleepy mood activates only after 12s of user inactivity; animated rising bubbles; somersault executes once (750ms) using normal side view and resets; fixed clipPath rotation on side SVGs to eliminate bulging stripes; smooth pinch-to-resize gesture with persisted scale.
+   - **Item 7 (Write Note Modal):** Centered modal sheet with scrollable body that never overflows below screen or obscures the navbar.
+   - **Item 8 (Learning Map Tab):** Added Learning Map (`/map`) in dropdown drawer.
+   - **Item 9 (Discard Incomplete Session):** Fixed `useHomeStats.refresh()` so discarding an incomplete session refreshes state and UI immediately.
+   - **Item 10 (Activity Screen):** Streak & Activity screen (`/activity`) with 12-week review heatmap based on card review volume and accuracy trend graph with target retention line.
+   - **Item 11 (Profile & Settings):** Renamed settings to `/profile`, added `userName` in database (default: `'dory'`), user-friendly `<input type="time">` for day start, target daily cards, and target retention slider.
+   - **Item 12 (Dropdown Waves Banner):** Extended wave banner illustration (150px height) with swimming Mnemo and bubbles.
+   - **Item 13 (App Reset):** Removed old memdory debug block from Profile and added a red Danger Zone button with confirmation dialog to cleanly reset all tables and restore default settings.
+   - **Item 14 (Analysis Customizations):** Multi-topic and tag filters, topic mastery comparison, tag performance tiers, and mascot insight summary.
+   - **Item 15 (P-Block Chemistry JEE/BITSAT Test File):** Created `pblock-jee-bitsat.txt` covering Groups 13–18 with all note types (`concept`, `formula`, `mnemonic`, `trick`, `table`, `normal`) and rich cards with `WHY:`, `TAGS:`, `TWO-WAY:`, `STAR:`, LaTeX formulas, and card families.

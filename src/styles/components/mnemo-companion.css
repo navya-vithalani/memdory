@@ -92,7 +92,31 @@
   height: 6px;
   top: 25%;
   right: 10%;
-  animation: mnemo-bubble-float 4.2s ease-in infinite 2.8s;
+  animation: mnemo-bubble-float 3.8s ease-in infinite 2.5s;
+}
+
+.bubble-3 {
+  width: 10px;
+  height: 10px;
+  top: 40%;
+  right: 22%;
+  animation: mnemo-bubble-float 4.5s ease-in infinite 0.4s;
+}
+
+.bubble-4 {
+  width: 5px;
+  height: 5px;
+  top: 10%;
+  right: 30%;
+  animation: mnemo-bubble-float 3.5s ease-in infinite 1.8s;
+}
+
+.bubble-5 {
+  width: 7px;
+  height: 7px;
+  top: 30%;
+  right: 5%;
+  animation: mnemo-bubble-float 4.0s ease-in infinite 3.2s;
 }
 
 @keyframes mnemo-swim-idle {

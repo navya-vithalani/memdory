@@ -1,3 +1,4 @@
+import { useId, useMemo } from 'react';
 import sideHappy from '../../assets/mascot/mnemo-side-happy.svg?raw';
 import sideExcited from '../../assets/mascot/mnemo-side-excited.svg?raw';
 import sideSleepy from '../../assets/mascot/mnemo-side-sleepy.svg?raw';
@@ -28,7 +29,15 @@ type MnemoProps = {
 };
 
 export function Mnemo({ mood = 'happy', className = '' }: MnemoProps) {
-  const svgHtml = artwork[mood] ?? artwork.happy;
+  const uniqueId = useId().replaceAll(':', '');
+  const rawSvg = artwork[mood] ?? artwork.happy;
+
+  const svgHtml = useMemo(() => {
+    return rawSvg
+      .replace(/id="bd"/g, `id="bd-${mood}-${uniqueId}"`)
+      .replace(/clip-path="url\(#bd\)"/g, `clip-path="url(#bd-${mood}-${uniqueId})"`);
+  }, [rawSvg, mood, uniqueId]);
+
   return (
     <span
       className={`mnemo ${className}`}

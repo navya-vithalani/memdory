@@ -1,12 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useCards } from '../../hooks/useCards';
+import { useHomeStats } from '../../hooks/useHomeStats';
 import { useSettings } from '../../hooks/useSettings';
 import { useTree } from '../../hooks/useTree';
 import type { CardRecord, SessionRecord } from '../../types';
 import { AddCardModal } from '../components/AddCardModal';
 import { ImportModal } from '../components/ImportModal';
 import { ManualCardModal } from '../components/ManualCardModal';
+import { MnemoSummaryCard } from '../components/MnemoSummaryCard';
 import { SessionList } from '../components/SessionList';
 import { SessionPromptModal } from '../components/SessionPromptModal';
 import { SessionSetupModal, type SessionParams } from '../components/SessionSetupModal';
@@ -19,6 +21,7 @@ export function CardsScreen() {
   const [params, setParams] = useSearchParams();
   const { settings, ready } = useSettings();
   const { nodes, error: treeError } = useTree();
+  const { snapshot } = useHomeStats(settings, nodes);
   const {
     loadSessions,
     startSession: buildSession,
@@ -26,6 +29,16 @@ export function CardsScreen() {
     discard,
     addCard: saveCard
   } = useCards();
+
+  const insightInput = useMemo(() => {
+    return {
+      hasIncompleteSession: Boolean(snapshot?.inProgressSession),
+      currentStreak: snapshot?.currentStreak ?? 0,
+      completedToday: snapshot?.completedToday ?? false,
+      totalReviews: snapshot?.reviewsToday ?? 0,
+      weakestTopic: snapshot?.weakestTopic ? { name: snapshot.weakestTopic.node.name, recall: snapshot.weakestTopic.recall * 100 } : undefined
+    };
+  }, [snapshot]);
 
   const [sessions, setSessions] = useState<SessionRecord[]>([]);
   const [studyQueue, setStudyQueue] = useState<CardRecord[] | null>(null);
@@ -205,6 +218,7 @@ export function CardsScreen() {
         </p>
       ) : (
         <>
+          <MnemoSummaryCard stats={insightInput} />
           <div className="cards-actions">
             <button
               className="cards-action start"

@@ -47,7 +47,7 @@ export function useTree() {
         setReady(true);
       }
     }).catch((reason: unknown) => {
-      if (active) setError(reason instanceof Error ? reason.message : 'Could not load the study tree.');
+      if (active) setError(reason instanceof Error ? reason.message : 'Could not load the tree.');
     });
     return () => {
       active = false;

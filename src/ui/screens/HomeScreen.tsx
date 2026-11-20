@@ -71,11 +71,11 @@ export function HomeScreen() {
   // Sensible mascot insight for the home hero summary
   let insightText = "Every short session helps you remember more. Let's make today count!";
   if (snapshot?.inProgressSession) {
-    insightText = 'You have a study session in progress. Pick it right back up!';
+    insightText = 'You have a session in progress. Pick it right back up!';
   } else if (atRiskCount > 0) {
     insightText = `${atRiskCount} cards are ready for review today before they fade.`;
   } else if (nodes.length === 0) {
-    insightText = 'Welcome! Add a study area below or import your notes and flashcards.';
+    insightText = 'Welcome! Add a learning area below or import your notes and flashcards.';
   }
 
   return (
@@ -93,13 +93,12 @@ export function HomeScreen() {
             <svg viewBox="0 0 24 24" aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
               <path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14" />
             </svg>
-            <span>Import</span>
           </button>
           <button
             className="home-quick-start"
             onClick={handleStartSession}
             disabled={nodes.length === 0}
-            aria-label="Start study session"
+            aria-label="Start session"
           >
             <span aria-hidden="true">▶</span>
           </button>
@@ -111,7 +110,7 @@ export function HomeScreen() {
         <div className="home-hero-copy">
           <div className="home-insight-bubble">
             <p>{insightText}</p>
-            <Link to="/analysis" className="home-insight-link">See full study insights →</Link>
+            <Link to="/analysis" className="home-insight-link">See full analysis →</Link>
           </div>
         </div>
         <Mnemo mood={mascotMood} className="home-mascot" />

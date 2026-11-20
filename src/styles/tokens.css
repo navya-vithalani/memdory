@@ -60,3 +60,77 @@
   --note-slate-accent: #495057;
   --note-slate-ink: #212529;
 }
+
+*, *::before, *::after {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button, a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:active:not(:disabled) {
+  transform: scale(0.97);
+  filter: brightness(0.92);
+}
+
+.primary-button:active:not(:disabled) {
+  background: var(--orange-pressed);
+  transform: scale(0.96);
+  filter: none;
+}
+
+.secondary-button:active:not(:disabled) {
+  background: color-mix(in srgb, var(--indigo-tint) 85%, var(--ink));
+  transform: scale(0.97);
+  filter: none;
+}
+
+/* Luggage tags with pointed left notch and thin string (Phase 7.3) */
+.luggage-tag {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 10px 3px 14px;
+  border-radius: 4px 12px 12px 4px;
+  background: var(--indigo-tint);
+  color: var(--indigo);
+  clip-path: polygon(8px 0%, 100% 0%, 100% 100%, 8px 100%, 0% 50%);
+  margin-left: 8px;
+  animation: tag-sway 4s ease-in-out infinite alternate;
+}
+
+.luggage-tag::before {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 1px solid var(--indigo);
+}
+
+.luggage-tag::after {
+  content: '';
+  position: absolute;
+  left: -8px;
+  top: 50%;
+  width: 9px;
+  height: 1px;
+  background: var(--ink-soft);
+  opacity: 0.6;
+}
+
+@keyframes tag-sway {
+  0% { transform: rotate(-2deg); }
+  100% { transform: rotate(2deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .luggage-tag { animation: none; }
+}

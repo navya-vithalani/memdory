@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 300" width="380" height="300" role="img" xmlns:c2pa="http://c2pa.org/manifest"><title>Mnemo side excited</title>
-<defs><clipPath id="bd"><ellipse cx="180" cy="150" rx="100" ry="80"/></clipPath></defs><g id="fish" transform="rotate(-8 180 150)"><g id="tail"><path d="M268 150 Q300 120 328 92 Q344 150 328 208 Q300 180 268 150 Z" fill="#FF8A1F" stroke="#2A2140" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/></g>
+<defs><clipPath id="bd"><ellipse cx="180" cy="150" rx="100" ry="80" transform="rotate(-8 180 150)"/></clipPath></defs><g id="fish" transform="rotate(-8 180 150)"><g id="tail"><path d="M268 150 Q300 120 328 92 Q344 150 328 208 Q300 180 268 150 Z" fill="#FF8A1F" stroke="#2A2140" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/></g>
 <g id="dorsal-fin"><path d="M150 78 Q190 28 245 82 Z" fill="#FF8A1F" stroke="#2A2140" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/></g>
 <g id="belly-fin"><path d="M185 224 Q205 262 236 222 Z" fill="#FF8A1F" stroke="#2A2140" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/></g>
 <g id="body"><ellipse cx="180" cy="150" rx="100" ry="80" fill="#FF8A1F"/>

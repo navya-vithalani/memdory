@@ -27,11 +27,11 @@ const reactions: Record<ReviewRating, { mood: MnemoMood; motion: string }> = {
   wrong: { mood: 'front-shocked', motion: 'shake' }
 };
 
-const IDLE_EXPRESSIONS: MnemoMood[] = ['front', 'front-happy', 'happy', 'front', 'excited'];
+const IDLE_EXPRESSIONS: MnemoMood[] = ['front', 'front-happy', 'front'];
 
 type Gesture =
   | { kind: 'drag'; pointerId: number; startX: number; startY: number; originX: number; originY: number; moved: boolean }
-  | { kind: 'pinch'; startDistance: number; startScale: number; centerX: number; centerY: number };
+  | { kind: 'pinch'; startDistance: number; startScale: number };
 
 /**
  * Mnemo lives in the study screen: drag him anywhere, pinch (or ctrl + wheel) to resize.
@@ -42,15 +42,17 @@ export function MnemoCompanion({ containerRef, placement, reaction, onPlacementC
   const [size, setSize] = useState({ width: 0, height: 0 });
   const [dragging, setDragging] = useState(false);
   const [tilt, setTilt] = useState(0);
-  const [tapId, setTapId] = useState(0);
+  const [isSomersaulting, setIsSomersaulting] = useState(false);
+  const [somersaultCount, setSomersaultCount] = useState(0);
   const [idleMoodIndex, setIdleMoodIndex] = useState(0);
   const [flipDirection, setFlipDirection] = useState<'left' | 'right'>('right');
+  const [isSleepy, setIsSleepy] = useState(false);
 
   const pointers = useRef(new Map<number, { x: number; y: number }>());
   const gesture = useRef<Gesture | null>(null);
   const latest = useRef(view);
   const wheelTimer = useRef<number | undefined>(undefined);
-  const thinkingTimer = useRef<number>(0);
+  const lastActionTime = useRef<number>(Date.now());
   latest.current = view;
 
   useEffect(() => setView(placement), [placement.x, placement.y, placement.scale]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -67,32 +69,39 @@ export function MnemoCompanion({ containerRef, placement, reaction, onPlacementC
 
   useEffect(() => () => window.clearTimeout(wheelTimer.current), []);
 
-  // Idle alive expressions and swimming direction cycling
+  // Sleepy check: user made no action for more than 12 seconds
   useEffect(() => {
-    if (reaction || dragging) return;
+    const timer = window.setInterval(() => {
+      const inactiveMs = Date.now() - lastActionTime.current;
+      if (inactiveMs >= 12000 && !isSleepy && !reaction && !dragging && !isSomersaulting) {
+        setIsSleepy(true);
+      } else if (inactiveMs < 12000 && isSleepy) {
+        setIsSleepy(false);
+      }
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [isSleepy, reaction, dragging, isSomersaulting]);
+
+  // Idle alive expressions and swimming direction cycling (front views only)
+  useEffect(() => {
+    if (reaction || dragging || isSleepy || isSomersaulting) return;
 
     const interval = window.setInterval(() => {
-      thinkingTimer.current += 1;
-      setIdleMoodIndex((prev) => {
-        // If thinking for a very long time (>25s), occasionally show sleepy
-        if (thinkingTimer.current >= 6) {
-          return (prev + 1) % (IDLE_EXPRESSIONS.length + 1);
-        }
-        return (prev + 1) % IDLE_EXPRESSIONS.length;
-      });
-
-      // Periodically alternate swimming direction
+      setIdleMoodIndex((prev) => (prev + 1) % IDLE_EXPRESSIONS.length);
       if (Math.random() > 0.5) {
         setFlipDirection((dir) => (dir === 'left' ? 'right' : 'left'));
       }
-    }, 4200);
+    }, 4000);
 
     return () => window.clearInterval(interval);
-  }, [reaction, dragging]);
+  }, [reaction, dragging, isSleepy, isSomersaulting]);
 
   // Reset thinking timer when reaction changes (user answered)
   useEffect(() => {
-    thinkingTimer.current = 0;
+    if (reaction) {
+      lastActionTime.current = Date.now();
+      setIsSleepy(false);
+    }
   }, [reaction?.id]);
 
   const width = BASE_WIDTH * view.scale;
@@ -105,6 +114,8 @@ export function MnemoCompanion({ containerRef, placement, reaction, onPlacementC
   const commit = useCallback(() => onPlacementChange(latest.current), [onPlacementChange]);
 
   function onPointerDown(event: ReactPointerEvent<HTMLDivElement>) {
+    lastActionTime.current = Date.now();
+    setIsSleepy(false);
     event.currentTarget.setPointerCapture(event.pointerId);
     pointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
     if (pointers.current.size === 1) {
@@ -115,9 +126,7 @@ export function MnemoCompanion({ containerRef, placement, reaction, onPlacementC
       gesture.current = {
         kind: 'pinch',
         startDistance: Math.max(1, Math.hypot(a.x - b.x, a.y - b.y)),
-        startScale: latest.current.scale,
-        centerX: left + width / 2,
-        centerY: top + height / 2
+        startScale: latest.current.scale
       };
     }
   }
@@ -127,6 +136,9 @@ export function MnemoCompanion({ containerRef, placement, reaction, onPlacementC
     pointers.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
     const active = gesture.current;
     if (!active) return;
+
+    lastActionTime.current = Date.now();
+    setIsSleepy(false);
 
     if (active.kind === 'drag' && active.pointerId === event.pointerId) {
       const dx = event.clientX - active.startX;
@@ -143,14 +155,10 @@ export function MnemoCompanion({ containerRef, placement, reaction, onPlacementC
       }));
     } else if (active.kind === 'pinch' && pointers.current.size >= 2) {
       const [a, b] = [...pointers.current.values()];
-      const scale = clamp(active.startScale * (Math.hypot(a.x - b.x, a.y - b.y) / active.startDistance), MIN_SCALE, MAX_SCALE);
-      const nextFreeX = Math.max(1, size.width - BASE_WIDTH * scale);
-      const nextFreeY = Math.max(1, size.height - BASE_HEIGHT * scale);
-      setView({
-        scale,
-        x: clamp((active.centerX - (BASE_WIDTH * scale) / 2) / nextFreeX, 0, 1),
-        y: clamp((active.centerY - (BASE_HEIGHT * scale) / 2) / nextFreeY, 0, 1)
-      });
+      const currentDist = Math.max(1, Math.hypot(a.x - b.x, a.y - b.y));
+      const factor = currentDist / active.startDistance;
+      const nextScale = clamp(active.startScale * factor, MIN_SCALE, MAX_SCALE);
+      setView((prev) => ({ ...prev, scale: nextScale }));
     }
   }
 
@@ -162,36 +170,43 @@ export function MnemoCompanion({ containerRef, placement, reaction, onPlacementC
       setTilt(0);
       gesture.current = null;
       if (active?.kind === 'drag' && !active.moved) {
-        setTapId((value) => value + 1);
+        // Tap -> exactly 1 somersault with normal side view ('happy'), then reset
+        setIsSomersaulting(true);
+        setSomersaultCount((c) => c + 1);
+        lastActionTime.current = Date.now();
+        setIsSleepy(false);
+        window.setTimeout(() => {
+          setIsSomersaulting(false);
+        }, 750);
       } else {
         commit();
       }
-    } else if (active?.kind === 'pinch') {
-      const [id, point] = [...pointers.current.entries()][0];
-      gesture.current = { kind: 'drag', pointerId: id, startX: point.x, startY: point.y, originX: clamp(latest.current.x, 0, 1) * freeX, originY: clamp(latest.current.y, 0, 1) * freeY, moved: true };
     }
   }
 
   function onWheel(event: React.WheelEvent<HTMLDivElement>) {
     if (!event.ctrlKey) return;
+    lastActionTime.current = Date.now();
+    setIsSleepy(false);
     setView((prev) => ({ ...prev, scale: clamp(prev.scale - event.deltaY * 0.004, MIN_SCALE, MAX_SCALE) }));
     window.clearTimeout(wheelTimer.current);
     wheelTimer.current = window.setTimeout(commit, 350);
   }
 
   const reacting = reaction ? reactions[reaction.rating] : null;
-  const isTap = tapId > 0 && !reacting;
-  const motionName = reacting?.motion ?? (isTap ? 'somersault' : 'swim-idle');
+  const motionName = reacting?.motion ?? (isSomersaulting ? 'somersault' : 'swim-idle');
 
   let activeMood: MnemoMood = 'front';
   if (reacting) {
     activeMood = reacting.mood;
-  } else if (isTap) {
-    activeMood = 'excited';
-  } else if (idleMoodIndex < IDLE_EXPRESSIONS.length) {
-    activeMood = IDLE_EXPRESSIONS[idleMoodIndex];
-  } else {
+  } else if (isSomersaulting) {
+    // Normal side view for somersault, NOT excited
+    activeMood = 'happy';
+  } else if (isSleepy) {
     activeMood = 'sleepy';
+  } else {
+    // Idle front expressions only
+    activeMood = IDLE_EXPRESSIONS[idleMoodIndex % IDLE_EXPRESSIONS.length];
   }
 
   return (
@@ -212,12 +227,15 @@ export function MnemoCompanion({ containerRef, placement, reaction, onPlacementC
       onWheel={onWheel}
     >
       <div
-        key={`${reaction?.id ?? 0}-${tapId}-${idleMoodIndex}`}
+        key={`${reaction?.id ?? 0}-${somersaultCount}-${idleMoodIndex}-${isSleepy ? 'sleepy' : 'active'}`}
         className={`mnemo-body mnemo-motion-${motionName} facing-${flipDirection}`}
       >
         <Mnemo mood={activeMood} />
         <span className="mnemo-bubble bubble-1" aria-hidden="true" />
         <span className="mnemo-bubble bubble-2" aria-hidden="true" />
+        <span className="mnemo-bubble bubble-3" aria-hidden="true" />
+        <span className="mnemo-bubble bubble-4" aria-hidden="true" />
+        <span className="mnemo-bubble bubble-5" aria-hidden="true" />
       </div>
     </div>
   );

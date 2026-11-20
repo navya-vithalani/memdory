@@ -222,6 +222,60 @@ export async function createCard(
   return card;
 }
 
+export async function updateCardRecord(
+  cardId: string,
+  updates: {
+    front?: string;
+    back?: string;
+    explanation?: string | null;
+    tags?: string[];
+    direction?: 'one-way' | 'both';
+    starred?: boolean;
+    paused?: boolean;
+  }
+): Promise<CardRecord> {
+  const card = await db.cards.get(cardId);
+  if (!card) throw new Error('Card not found');
+  const now = Date.now();
+  let tagIds = card.tagIds ?? [];
+
+  if (updates.tags) {
+    tagIds = [];
+    for (const rawTag of updates.tags) {
+      const { key, label } = normalizeTagName(rawTag);
+      let existing = await db.tags.where('name').equals(key).first();
+      if (!existing) {
+        existing = { id: crypto.randomUUID(), name: key, label, createdAt: now };
+        await db.tags.add(existing);
+      }
+      tagIds.push(existing.id);
+    }
+  }
+
+  const updated: CardRecord = {
+    ...card,
+    front: updates.front !== undefined ? updates.front.trim() : card.front,
+    back: updates.back !== undefined ? updates.back.trim() : card.back,
+    explanation: updates.explanation !== undefined ? updates.explanation : card.explanation,
+    tagIds,
+    direction: updates.direction !== undefined ? updates.direction : card.direction,
+    starred: updates.starred !== undefined ? updates.starred : card.starred,
+    paused: updates.paused !== undefined ? updates.paused : card.paused,
+    updatedAt: now
+  };
+
+  await db.cards.put(updated);
+  return updated;
+}
+
+export async function deleteCardRecord(cardId: string): Promise<void> {
+  await db.transaction('rw', [db.cards, db.reviewItems, db.reviews], async () => {
+    await db.cards.delete(cardId);
+    await db.reviewItems.where('cardId').equals(cardId).delete();
+    await db.reviews.where('cardId').equals(cardId).delete();
+  });
+}
+
 export {
   createSession,
   finishSession,

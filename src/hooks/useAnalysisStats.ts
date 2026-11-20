@@ -22,6 +22,13 @@ function dayLabel(date: Date, weekday = false): string {
     : { month: 'short', day: 'numeric' }).format(date);
 }
 
+export type TagPerformanceItem = {
+  tag: string;
+  reviews: number;
+  correct: number;
+  accuracy: number;
+};
+
 export type AnalysisSnapshot = {
   totalReviews: number;
   ratings: Array<{ name: string; value: number; color: string }>;
@@ -32,6 +39,7 @@ export type AnalysisSnapshot = {
   weakestTopics: Array<{ name: string; recall: number }>;
   forecast: Array<{ day: string; count: number }>;
   streakHistory: Array<{ key: string; label: string; count: number }>;
+  tagPerformance?: TagPerformanceItem[];
 };
 
 const colors: Record<ReviewRating, string> = {
@@ -49,13 +57,14 @@ export function useAnalysisStats() {
 
   useEffect(() => {
     let active = true;
-    void Promise.all([db.cards.toArray(), db.reviews.toArray(), db.nodes.toArray()]).then(([cards, reviews, nodes]) => {
+    void Promise.all([db.cards.toArray(), db.reviews.toArray(), db.nodes.toArray(), db.tags.toArray()]).then(([cards, reviews, nodes, tags]) => {
       const now = new Date();
       const countsByDay = new Map<string, number>();
       const accuracyByDay = new Map<string, { total: number; correct: number }>();
       const ratingCounts = new Map<ReviewRating, number>(ratingLabels.map((rating) => [rating, 0]));
       const cardById = new Map(cards.map((card) => [card.id, card]));
       const nodeById = new Map(nodes.map((node) => [node.id, node]));
+      const tagById = new Map(tags.map((t) => [t.id, t.label || t.name]));
       const timeByNode = new Map<string, number>();
 
       for (const review of reviews) {
@@ -127,6 +136,34 @@ export function useAnalysisStats() {
         const key = dayKey(date);
         return { key, label: dayLabel(date), count: countsByDay.get(key) ?? 0 };
       });
+
+      // Compute tag performance
+      const tagStatsMap = new Map<string, { total: number; correct: number }>();
+      for (const review of reviews) {
+        const card = cardById.get(review.cardId);
+        if (!card?.tagIds || card.tagIds.length === 0) continue;
+        const isCorrect = review.rating === 'easy' || review.rating === 'medium' || review.rating === 'hard';
+        for (const tagId of card.tagIds) {
+          const tagName = tagById.get(tagId);
+          if (!tagName) continue;
+          const norm = tagName.toLowerCase().trim();
+          if (!norm) continue;
+          const curr = tagStatsMap.get(norm) ?? { total: 0, correct: 0 };
+          curr.total += 1;
+          if (isCorrect) curr.correct += 1;
+          tagStatsMap.set(norm, curr);
+        }
+      }
+
+      const tagPerformance: TagPerformanceItem[] = Array.from(tagStatsMap.entries())
+        .map(([tag, data]) => ({
+          tag,
+          reviews: data.total,
+          correct: data.correct,
+          accuracy: data.total > 0 ? Math.round((data.correct / data.total) * 100) : 0
+        }))
+        .sort((a, b) => b.reviews - a.reviews);
+
       const next: AnalysisSnapshot = {
         totalReviews: reviews.length,
         ratings: ratingLabels.map((rating) => ({
@@ -140,14 +177,15 @@ export function useAnalysisStats() {
         accuracyTrend,
         weakestTopics,
         forecast,
-        streakHistory
+        streakHistory,
+        tagPerformance
       };
       if (active) {
         setSnapshot(next);
         setError('');
       }
     }).catch((reason: unknown) => {
-      if (active) setError(reason instanceof Error ? reason.message : 'Could not load study analysis.');
+      if (active) setError(reason instanceof Error ? reason.message : 'Could not load analysis.');
     });
     return () => {
       active = false;

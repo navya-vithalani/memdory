@@ -1,0 +1,457 @@
+@ Group 13 (Boron Family) > General Trends
+
+NOTE: Inert Pair Effect & Oxidation States in Group 13
+type: concept
+color: indigo
+star: true
+tags: grp13, inert-pair-effect, trends
+body:
+### Inert Pair Effect
+As we descend Group 13, the reluctance of the outer valence $s$-electrons ($ns^2$) to participate in chemical bonding is called the **inert pair effect**.
+
+- Cause: Poor shielding of nuclear charge by the intervening $d$ and $f$ electrons ($3d^{10}$, $4f^{14}5d^{10}$).
+- Stability trend:
+  - $+3$ oxidation state: $\text{B} > \text{Al} > \text{Ga} > \text{In} > \text{Tl}$
+  - $+1$ oxidation state: $\text{Tl} > \text{In} > \text{Ga} > \text{Al} > \text{B}$
+- Consequences:
+  - $\text{Tl}^{3+}$ acts as a powerful **oxidizing agent**: $\text{Tl}^{3+} + 2e^- \rightarrow \text{Tl}^+$ ($E^\circ = +1.26\text{ V}$).
+  - $\text{B}$ and $\text{Al}$ show exclusively $+3$ oxidation state in stable compounds.
+---
+
+NOTE: Group 13 Ionization Enthalpy Exception
+type: mnemonic
+color: violet
+star: true
+cue: B-Tl-Ga-Al-In
+means: Order of First Ionization Enthalpy in Group 13
+story: Boron tops the mountain, Thallium jumps second due to 4f lanthanide contraction, Gallium surpasses Aluminum due to 3d d-orbital contraction, leaving Indium at the bottom!
+tags: grp13, periodic-trends, exceptions, mnemonic
+---
+
+NOTE: Lewis Acidity of Boron Trihalides
+type: trick
+color: sun
+star: true
+tags: grp13, back-bonding, lewis-acids, jee-advanced
+body:
+**Expected Order:** $\text{BF}_3 > \text{BCl}_3 > \text{BBr}_3 > \text{BI}_3$ (based on electronegativity of halogens).
+
+**Actual Order:** $\text{BF}_3 < \text{BCl}_3 < \text{BBr}_3 < \text{BI}_3$
+
+**Why?** Strong $2p\pi-2p\pi$ back-bonding occurs between filled $2p$ orbital of Fluorine and empty $2p$ orbital of Boron because of optimal size match. In $\text{BCl}_3$, $\text{BBr}_3$, and $\text{BI}_3$, back-bonding weakens drastically due to poor overlap ($2p-3p$, $2p-4p$, $2p-5p$).
+---
+
+NOTE: Group 13 Physical Properties & Anomalies
+type: table
+color: mint
+star: false
+tags: grp13, data-table, physical-properties
+body:
+| Property | Boron (B) | Aluminum (Al) | Gallium (Ga) | Indium (In) | Thallium (Tl) |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| Atomic Number | 5 | 13 | 31 | 49 | 81 |
+| Valence Config | $2s^2 2p^1$ | $3s^2 3p^1$ | $3d^{10}4s^2 4p^1$ | $4d^{10}5s^2 5p^1$ | $4f^{14}5d^{10}6s^2 6p^1$ |
+| 1st IE (kJ/mol) | 801 | 577 | 579 | 558 | 589 |
+| Atomic Radius (pm) | 85 | 143 | 135 (Ga < Al!) | 167 | 170 |
+| Stable State | +3 | +3 | +3 | +3, +1 | +1 |
+---
+
+Q: Why is the atomic radius of Gallium (135 pm) smaller than that of Aluminum (143 pm)?
+A: Due to the presence of $10$ intervening $3d$ electrons in Gallium, which shield the nuclear charge very poorly, resulting in an increased effective nuclear charge ($Z_{\text{eff}}$) that pulls valence electrons closer.
+WHY: Aluminum has an inner configuration of neon ($[Ne]$) with only $s$ and $p$ electrons (high shielding). Gallium has $[Ar]3d^{10}$, and $d$-orbitals have diffuse shapes with weak screening.
+TAGS: grp13, atomic-radius, exceptions, jee-main
+TWO-WAY: false
+STAR: true
+
+Q: What is the correct order of Lewis acid strength among boron trihalides: $BF_3$, $BCl_3$, $BBr_3$, and $BI_3$?
+A: $BF_3 < BCl_3 < BBr_3 < BI_3$
+WHY: $p\pi-p\pi$ back-donation is strongest in $BF_3$ due to matching $2p(\text{B})-2p(\text{F})$ orbitals, satisfying Boron's electron deficiency and reducing its Lewis acidity. In $BI_3$, $2p(\text{B})-5p(\text{I})$ overlap is ineffective.
+TAGS: grp13, lewis-acidity, back-bonding, bitsat
+TWO-WAY: false
+STAR: true
+
+@ Group 13 (Boron Family) > Compounds (Borax, Diborane)
+
+NOTE: Structure and 3c-2e Bonds of Diborane
+type: formula
+color: sky
+star: true
+tags: grp13, diborane, chemical-bonding
+body:
+**Molecular Formula:** $\text{B}_2\text{H}_6$
+**Structure:**
+- 4 terminal $\text{B}-\text{H}_t$ bonds: Normal $2$-center-$2$-electron ($2c-2e$) covalent bonds.
+- 2 bridging $\text{B}-\text{H}_b-\text{B}$ bonds: $3$-center-$2$-electron ($3c-2e$) banana bonds (tau bonds).
+- Hybridization of Boron: $sp^3$
+- Coplanarity: The 2 Boron atoms and 4 terminal Hydrogen atoms lie in one plane; 1 bridge H lies above the plane and 1 lies below.
+- Bond angles: $\angle \text{H}_t-\text{B}-\text{H}_t \approx 120^\circ$, $\angle \text{B}-\text{H}_b-\text{B} \approx 97^\circ$.
+---
+
+NOTE: Borax Bead Test Overview
+type: normal
+color: rose
+star: false
+tags: grp13, borax, qualitative-analysis
+body:
+When borax powder is heated on a platinum wire loop:
+1. It swells up due to loss of water of crystallization:
+$$\text{Na}_2\text{B}_4\text{O}_7 \cdot 10\text{H}_2\text{O} \xrightarrow{\Delta} \text{Na}_2\text{B}_4\text{O}_7 + 10\text{H}_2\text{O}$$
+2. On further heating to red heat, it melts to form a clear transparent glass bead consisting of **Sodium Metaborate** ($\text{NaBO}_2$) and **Boric Anhydride** ($\text{B}_2\text{O}_3$):
+$$\text{Na}_2\text{B}_4\text{O}_7 \xrightarrow{\Delta} 2\text{NaBO}_2 + \text{B}_2\text{O}_3$$
+3. When fused with colored transition metal salts, it forms characteristic colored metaborates!
+---
+
+Q: What happens when Borax ($Na_2B_4O_7 \cdot 10H_2O$) is heated strongly on a platinum loop?
+A: It loses water of crystallization with swelling and melts into a transparent glassy bead composed of Sodium Metaborate ($NaBO_2$) and Boric Anhydride ($B_2O_3$).
+WHY: $Na_2B_4O_7 \cdot 10H_2O \rightarrow Na_2B_4O_7 \rightarrow 2NaBO_2 + B_2O_3$. The $B_2O_3$ reacts with metal oxides to form colored metaborates.
+TAGS: grp13, borax, reactions, bead-test
+TWO-WAY: false
+STAR: true
+
+Q: What happens when Borax ($Na_2B_4O_7 \cdot 10H_2O$) is heated strongly on a platinum loop?
+A: In an oxidizing flame with Cobalt salts, it produces a deep blue glassy bead due to the formation of Cobalt Metaborate, $Co(BO_2)_2$.
+WHY: $B_2O_3 + CoO \rightarrow Co(BO_2)_2$ (characteristic deep blue bead in both hot and cold oxidizing flames).
+TAGS: grp13, borax, qualitative-analysis, bead-test
+TWO-WAY: false
+STAR: true
+
+Q: How many 3-center-2-electron ($3c-2e$) bonds and 2-center-2-electron ($2c-2e$) bonds are present in Diborane ($B_2H_6$)?
+A: Two $3c-2e$ bridge bonds ($\text{B}-\text{H}_b-\text{B}$) and four $2c-2e$ terminal bonds ($\text{B}-\text{H}_t$).
+WHY: Diborane is electron-deficient. 12 valence electrons in total ($2 \times 3 + 6 \times 1 = 12$). 8 electrons form 4 terminal bonds, leaving 4 electrons to form the 2 three-center banana bonds.
+TAGS: grp13, diborane, chemical-bonding, jee-main
+TWO-WAY: true
+STAR: true
+
+@ Group 14 (Carbon Family) > Allotropes & Silicates
+
+NOTE: Classification of Silicates
+type: formula
+color: sky
+star: true
+tags: grp14, silicates, inorganic-polymers
+body:
+Basic structural unit: $[\text{SiO}_4]^{4-}$ tetrahedron (Silicon $sp^3$ hybridized).
+
+1. **Orthosilicates (Nesosilicates):** Zero shared corners. Formula: $[\text{SiO}_4]^{4-}$ (e.g., Willemite $\text{Zn}_2\text{SiO}_4$, Phenacite $\text{Be}_2\text{SiO}_4$).
+2. **Pyrosilicates (Sorosilicates):** 1 shared oxygen corner. Formula: $[\text{Si}_2\text{O}_7]^{6-}$ (e.g., Thortveitite $\text{Sc}_2\text{Si}_2\text{O}_7$).
+3. **Cyclic Silicates:** 2 shared oxygen corners per tetrahedron. General formula: $[(\text{SiO}_3)_n]^{2n-}$ (e.g., Beryl $\text{Be}_3\text{Al}_2\text{Si}_6\text{O}_{18}$).
+4. **Chain Silicates (Pyroxenes):** 2 shared corners in linear polymer. Formula: $[(\text{SiO}_3)_n]^{2n-}$.
+5. **Sheet / 2D Silicates (Phyllosilicates):** 3 shared oxygen corners. Formula: $[(\text{Si}_2\text{O}_5)_n]^{2n-}$ (e.g., Talc, Mica, Kaolin).
+6. **3D Framework (Tectosilicates):** All 4 oxygen corners shared. Formula: $(\text{SiO}_2)_n$ (e.g., Quartz, Feldspar, Zeolites).
+---
+
+NOTE: C60 Buckminsterfullerene Geometry
+type: concept
+color: indigo
+star: true
+tags: grp14, carbon-allotropes, fullerene, jee-advanced
+body:
+### Buckminsterfullerene ($C_{60}$)
+- Soccer-ball shape (truncated icosahedron) with **32 faces**:
+  - **20 six-membered rings (hexagons)**
+  - **12 five-membered rings (pentagons)**
+- Ring connectivity rule:
+  - Six-membered rings are fused to both other hexagons and pentagons.
+  - Five-membered rings are fused **only to six-membered rings** (isolated pentagon rule).
+- Hybridization: Each Carbon atom is $sp^2$ hybridized with slight pyramidalization due to curvature.
+- Two distinct $\text{C}-\text{C}$ bond lengths:
+  - Single bond (hexagon-pentagon fusion): $143.5\text{ pm}$
+  - Double bond (hexagon-hexagon fusion): $138.3\text{ pm}$
+---
+
+NOTE: Silicones: Preparation and Cross-linking
+type: trick
+color: sun
+star: false
+tags: grp14, silicones, polymers
+body:
+- Hydrolysis of $\text{R}_3\text{SiCl} \rightarrow \text{R}_3\text{SiOH} \xrightarrow{\text{condensation}} \text{R}_3\text{Si}-\text{O}-\text{SiR}_3$ (**Chain Stopper** / dimer).
+- Hydrolysis of $\text{R}_2\text{SiCl}_2 \rightarrow$ **Linear chain silicone polymer**.
+- Hydrolysis of $\text{RSiCl}_3 \rightarrow$ **Cross-linked / 3D network silicone polymer**.
+- Controlling chain length: Add calculated amounts of $\text{R}_3\text{SiCl}$ to terminate linear polymerization!
+---
+
+Q: Why does $CCl_4$ resist hydrolysis under normal conditions, whereas $SiCl_4$ hydrolyzes violently in water?
+A: Silicon has accessible, vacant $3d$-orbitals to accept a lone pair from the water nucleophile ($H_2O$), forming an unstable 5- or 6-coordinated intermediate. Carbon has no low-lying $d$-orbitals in its valence shell.
+WHY: Hydrolysis requires coordination of oxygen lone pairs prior to displacement of chloride. Carbon cannot expand its octet ($2s^2 2p^2$), whereas Silicon can ($[Ne]3s^2 3p^2 3d^0$).
+TAGS: grp14, hydrolysis, coordination, jee-main
+TWO-WAY: false
+STAR: true
+
+Q: Why does Lead(IV) iodide ($PbI_4$) not exist, whereas $PbCl_4$ and $PbF_4$ exist?
+A: $\text{Pb}^{4+}$ is a strong oxidizing agent (due to inert pair effect) and $I^-$ is a powerful reducing agent; $Pb^{4+}$ immediately oxidizes $I^-$ to $I_2$, reducing itself to $PbI_2$.
+WHY: $\text{Pb}^{4+} + 2I^- \rightarrow \text{Pb}^{2+} + I_2$. The bond energy of $\text{Pb}-\text{I}$ is also too low to overcome the inert pair ionization energy.
+TAGS: grp14, inert-pair-effect, redox, bitsat
+TWO-WAY: true
+STAR: true
+
+@ Group 15 (Nitrogen Family) > Hydrides & Oxides
+
+NOTE: Group 15 Hydrides Trend Comparison
+type: table
+color: mint
+star: true
+tags: grp15, hydrides, periodic-trends, high-yield
+body:
+| Property | $NH_3$ | $PH_3$ | $AsH_3$ | $SbH_3$ | $BiH_3$ |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| Bond Angle | $107.8^\circ$ | $93.6^\circ$ | $91.8^\circ$ | $91.3^\circ$ | $90^\circ$ (Drago's rule) |
+| Boiling Point | High ($238\text{ K}$) | Low ($185\text{ K}$) | Medium ($211\text{ K}$) | High ($256\text{ K}$) | Highest ($290\text{ K}$) |
+| Thermal Stability | Highest | High | Moderate | Weak | Decomposes readily |
+| Reducing Character | Weakest | Moderate | Strong | Stronger | Strongest |
+| Lewis Basicity | Highest ($sp^3$) | Weak ($s$-character) | Very weak | Negligible | None |
+---
+
+NOTE: Drago's Rule in P-block Hydrides
+type: trick
+color: sun
+star: true
+tags: grp15, chemical-bonding, dragos-rule, jee-advanced
+body:
+**Drago's Rule Condition:**
+If the central atom belongs to period 3 or higher, has at least one lone pair, and the attached terminal atoms have electronegativity $\le 2.5$ (e.g., Hydrogen), **no hybridization occurs**.
+
+- In $\text{PH}_3$, $\text{AsH}_3$, and $\text{H}_2\text{S}$, the bond angle is $\approx 90^\circ-93^\circ$.
+- Bonds are formed by pure, unhybridized $p$-orbitals.
+- The lone pair resides in an almost pure $s$-orbital with high $s$-character, making it tightly held and an extremely weak Lewis base!
+---
+
+NOTE: Oxoacids of Phosphorus & P-H Bonds
+type: formula
+color: sky
+star: true
+tags: grp15, oxoacids, phosphorus, reducing-agents
+body:
+- **Hypophosphorous acid ($\text{H}_3\text{PO}_2$):**
+  - Oxidation state: $+1$
+  - Bonds: 1 $\text{P}=\text{O}$, 1 $\text{P}-\text{OH}$ (monobasic), 2 $\text{P}-\text{H}$ bonds
+  - Very strong reducing agent!
+- **Orthophosphorous acid ($\text{H}_3\text{PO}_3$):**
+  - Oxidation state: $+3$
+  - Bonds: 1 $\text{P}=\text{O}$, 2 $\text{P}-\text{OH}$ (dibasic), 1 $\text{P}-\text{H}$ bond
+  - Moderate reducing agent.
+- **Orthophosphoric acid ($\text{H}_3\text{PO}_4$):**
+  - Oxidation state: $+5$
+  - Bonds: 1 $\text{P}=\text{O}$, 3 $\text{P}-\text{OH}$ (tribasic), 0 $\text{P}-\text{H}$ bonds
+  - Non-reducing.
+---
+
+Q: Why is Hypophosphorous acid ($H_3PO_2$) a stronger reducing agent than Orthophosphorous acid ($H_3PO_3$)?
+A: Because $H_3PO_2$ possesses two directly bonded $P-H$ bonds, whereas $H_3PO_3$ has only one $P-H$ bond. Reducing ability in phosphorus oxoacids is directly determined by the number of $P-H$ bonds.
+WHY: $P-H$ bonds have hydridic character ($H^{\delta-}$ due to similar electronegativities: P = 2.19, H = 2.20) and easily supply electrons/hydride to reduce metal ions like $Ag^+$ to metallic silver.
+TAGS: grp15, oxoacids, reducing-power, jee-main
+TWO-WAY: false
+STAR: true
+
+Q: What is the physical state and structure of Phosphorus Pentachloride ($PCl_5$) in the solid state?
+A: In the solid state, it exists as an ionic solid consisting of tetrahedral $[PCl_4]^+$ cations and octahedral $[PCl_6]^-$ anions: $[PCl_4]^+[PCl_6]^-$.
+WHY: In the gas phase, $PCl_5$ is a monomeric trigonal bipyramidal molecule ($sp^3d$). In the crystalline solid, ionization optimizes lattice energy and electrostatic stability.
+TAGS: grp15, halides, phosphorus, solid-state, jee-advanced
+TWO-WAY: true
+STAR: true
+
+Q: What happens when Phosphorus Pentachloride ($PCl_5$) is heated in the gas phase?
+A: It readily dissociates into Phosphorus Trichloride ($PCl_3$) and Chlorine gas ($Cl_2$): $PCl_5 \xrightarrow{\Delta} PCl_3 + Cl_2$.
+WHY: The two axial $P-Cl$ bonds are longer and weaker than the three equatorial bonds due to greater repulsions (each axial bond experiences 3 repulsions at $90^\circ$ versus 2 at $90^\circ$ for equatorial).
+TAGS: grp15, halides, phosphorus, reactions, jee-main
+TWO-WAY: false
+STAR: true
+
+@ Group 16 (Oxygen Family) > Oxoacids & Anomalies
+
+NOTE: Anomalous Properties of Oxygen
+type: concept
+color: indigo
+star: false
+tags: grp16, oxygen, anomalies
+body:
+Oxygen differs from sulfur and higher members due to:
+1. Small atomic radius and high electronegativity (3.44, second only to Fluorine).
+2. High bond dissociation energy of $\text{O}=\text{O}$ double bond ($498\text{ kJ/mol}$).
+3. Absence of vacant $d$-orbitals in valence shell $\rightarrow$ maximum covalency of 4 (practically limited to 2 or 3 in $\text{H}_3\text{O}^+$).
+4. Forms strong intermolecular hydrogen bonding in $\text{H}_2\text{O}$, making it a liquid with abnormally high boiling point compared to $\text{H}_2\text{S}$ (gas).
+---
+
+NOTE: Peroxo-acids of Sulfur: Caro and Marshall
+type: formula
+color: sky
+star: true
+tags: grp16, oxoacids, sulfur, peroxo, jee-advanced
+body:
+1. **Caro's Acid (Peroxomonosulfuric acid, $\text{H}_2\text{SO}_5$):**
+   - Structure: Contains one peroxo linkage $(-\text{O}-\text{O}-)$ and one $-\text{OH}$ group attached to $\text{SO}_2$.
+   - Oxidation state of Sulfur: $+6$ (Calculated formally from formula: $2(+1) + x + 5(-2) = 0 \Rightarrow x = +8$, which is incorrect because maximum covalency of Sulfur is 6).
+2. **Marshall's Acid (Peroxodisulfuric acid, $\text{H}_2\text{S}_2\text{O}_8$):**
+   - Structure: Two $\text{HSO}_3$ groups joined by a peroxo bridge: $\text{HO}-\text{SO}_2-\text{O}-\text{O}-\text{SO}_2-\text{OH}$.
+   - Oxidation state of both Sulfur atoms: $+6$.
+---
+
+NOTE: Allotropes of Sulfur: Rhombic vs Monoclinic
+type: table
+color: mint
+star: false
+tags: grp16, allotropes, sulfur
+body:
+| Feature | Rhombic Sulfur ($\alpha$-Sulfur) | Monoclinic Sulfur ($\beta$-Sulfur) |
+| :--- | :--- | :--- |
+| Crystal Form | Octahedral / Rhombic | Needle-shaped prisms |
+| Stability | Stable below $369\text{ K}$ ($96^\circ\text{C}$) | Stable above $369\text{ K}$ |
+| Transition Temp | $369.2\text{ K}$ (both forms coexist in equilibrium) | $369.2\text{ K}$ |
+| Density | $2.06\text{ g/cm}^3$ | $1.96\text{ g/cm}^3$ |
+| Ring Size | Crown-shaped $S_8$ rings | Crown-shaped $S_8$ rings |
+| Solubility in $CS_2$ | Soluble | Soluble |
+---
+
+Q: What is the true oxidation state of Sulfur in Caro's acid ($H_2SO_5$)?
+A: $+6$
+WHY: Caro's acid has the structural formula $HO-SO_2-O-O-H$. The two oxygen atoms in the peroxo linkage have an oxidation state of $-1$ each, and the other three oxygen atoms are $-2$. Thus: $2(+1) + x + 3(-2) + 2(-1) = 0 \Rightarrow x = +6$.
+TAGS: grp16, oxoacids, oxidation-state, jee-main
+TWO-WAY: false
+STAR: true
+
+Q: Why is ozone ($O_3$) a powerful oxidizing agent at room temperature?
+A: Because it is thermodynamically unstable with respect to dioxygen and spontaneously decomposes to release highly reactive nascent oxygen: $O_3 \rightarrow O_2 + [O]$.
+WHY: The decomposition of ozone has negative $\Delta H$ (exothermic) and positive $\Delta S$ (increase in moles of gas), making $\Delta G$ very negative ($\Delta G = \Delta H - T\Delta S < 0$).
+TAGS: grp16, ozone, thermodynamics, oxidizing-power
+TWO-WAY: true
+STAR: true
+
+@ Group 17 (Halogens) > Interhalogens & Acidity
+
+NOTE: Acidic Strength of Chlorine Oxoacids
+type: concept
+color: indigo
+star: true
+tags: grp17, oxoacids, acid-strength, high-yield
+body:
+**Order of Acidity:**
+$$\text{HClO} < \text{HClO}_2 < \text{HClO}_3 < \text{HClO}_4$$
+**Mechanism:**
+- As the oxidation state of Chlorine increases ($+1 \rightarrow +3 \rightarrow +5 \rightarrow +7$), the number of terminal electronegative oxygen atoms ($=\text{O}$) increases.
+- Conjugate base stability:
+  - $\text{ClO}^-$: 0 equivalent resonance structures (charge localized).
+  - $\text{ClO}_2^-$: 2 equivalent resonance structures.
+  - $\text{ClO}_3^-$: 3 equivalent resonance structures.
+  - $\text{ClO}_4^-$: 4 equivalent resonance structures delocalizing negative charge over 4 oxygens.
+- Greater resonance stabilization of the conjugate base anion leads to stronger acid!
+---
+
+NOTE: Electron Gain Enthalpy Anomaly
+type: trick
+color: sun
+star: true
+tags: grp17, electron-affinity, exceptions, jee-main
+body:
+**Expected Order:** $\text{F} > \text{Cl} > \text{Br} > \text{I}$
+**Actual Order:** $\text{Cl} > \text{F} > \text{Br} > \text{I}$
+
+- $\Delta_{eg}H^\circ(\text{Cl}) = -349\text{ kJ/mol}$
+- $\Delta_{eg}H^\circ(\text{F}) = -328\text{ kJ/mol}$
+
+**Explanation:** Fluorine has an extremely compact $2p$ subshell. Adding an incoming electron experiences massive interelectronic repulsions from the already crowded 7 valence electrons. In Chlorine, the incoming electron enters the larger $3p$ orbital with significantly less repulsion!
+---
+
+NOTE: Geometry of Interhalogen Compounds
+type: table
+color: mint
+star: true
+tags: grp17, interhalogens, vsepr, chemical-bonding
+body:
+| Type | Example | Hybridization | Bond Pairs | Lone Pairs | Molecular Geometry |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| $XY$ | $\text{ClF}, \text{BrF}, \text{ICl}$ | $sp^3$ | 1 | 3 | Linear |
+| $XY_3$ | $\text{ClF}_3, \text{BrF}_3, \text{ICl}_3$ | $sp^3d$ | 3 | 2 (equatorial) | T-shaped |
+| $XY_5$ | $\text{BrF}_5, \text{IF}_5$ | $sp^3d^2$ | 5 | 1 | Square Pyramidal |
+| $XY_7$ | $\text{IF}_7$ | $sp^3d^3$ | 7 | 0 | Pentagonal Bipyramidal |
+---
+
+Q: What is the molecular geometry, hybridization, and number of lone pairs in Chlorine Trifluoride ($ClF_3$)?
+A: T-shaped geometry, $sp^3d$ hybridization, with 3 bond pairs and 2 lone pairs located at the equatorial positions.
+WHY: Central Chlorine has 7 valence electrons + 3 from Fluorine = 10 electrons (5 pairs). VSEPR dictates that the 2 lone pairs occupy equatorial sites to minimize $90^\circ$ lone pair-bond pair repulsions.
+TAGS: grp17, interhalogens, vsepr, bitsat
+TWO-WAY: true
+STAR: true
+
+Q: Why is Fluorine ($F_2$) a stronger oxidizing agent than Chlorine ($Cl_2$), despite Chlorine having a higher negative electron gain enthalpy?
+A: Because of the exceptionally low bond dissociation enthalpy of the $F-F$ single bond and the extremely high hydration enthalpy of the small fluoride ion ($F^-$).
+WHY: Standard electrode potential $E^\circ$ depends on $\Delta H_{\text{atomization}} + \Delta_{eg}H + \Delta H_{\text{hydration}}$. The weak $F-F$ bond (due to lone pair repulsion in compact $2p$) and huge hydration of $F^-$ overwhelm the electron gain enthalpy.
+TAGS: grp17, electrode-potential, oxidizing-power, jee-advanced
+TWO-WAY: false
+STAR: true
+
+@ Group 18 (Noble Gases) > Xenon Compounds & Geometry
+
+NOTE: Bartlett's First Synthesis of Noble Gas Compound
+type: concept
+color: indigo
+star: true
+tags: grp18, xenon, historical, discovery
+body:
+In 1962, Neil Bartlett noticed that platinum hexafluoride ($\text{PtF}_6$) oxidized molecular dioxygen ($\text{O}_2$) to form an ionic compound:
+$$\text{O}_2 + \text{PtF}_6 \rightarrow \text{O}_2^+[\text{PtF}_6]^-$$
+He realized that:
+- First ionization enthalpy of molecular Oxygen: $1175\text{ kJ/mol}$
+- First ionization enthalpy of Xenon: $1170\text{ kJ/mol}$
+Since their ionization energies are almost identical, Bartlett reacted Xenon with $\text{PtF}_6$ gas at room temperature, successfully isolating the first noble gas compound: **$\text{Xe}^+[\text{PtF}_6]^-$ (orange-yellow solid)**!
+---
+
+NOTE: Complete vs Partial Hydrolysis of Xenon Fluorides
+type: formula
+color: sky
+star: true
+tags: grp18, xenon, hydrolysis, reactions, high-yield
+body:
+1. **$XeF_2$ Hydrolysis (Redox):**
+$$2\text{XeF}_2 + 2\text{H}_2\text{O} \rightarrow 2\text{Xe} + 4\text{HF} + \text{O}_2$$
+2. **$XeF_4$ Hydrolysis (Disproportionation):**
+$$6\text{XeF}_4 + 12\text{H}_2\text{O} \rightarrow 2\text{Xe} + 4\text{XeO}_3 + 24\text{HF} + 3\text{O}_2$$
+3. **$XeF_6$ Complete Hydrolysis (Non-redox):**
+$$\text{XeF}_6 + 3\text{H}_2\text{O} \rightarrow \text{XeO}_3 (\text{explosive solid}) + 6\text{HF}$$
+4. **$XeF_6$ Partial Hydrolysis (Stepwise):**
+$$\text{XeF}_6 + \text{H}_2\text{O} \rightarrow \text{XeOF}_4 (\text{colorless liquid}) + 2\text{HF}$$
+$$\text{XeOF}_4 + \text{H}_2\text{O} \rightarrow \text{XeO}_2\text{F}_2 + 2\text{HF}$$
+---
+
+NOTE: Xenon Compounds Shapes and States
+type: table
+color: mint
+star: true
+tags: grp18, xenon-geometry, vsepr, summary-table
+body:
+| Compound | Central Xe Hybridization | Bond Pairs | Lone Pairs | Shape | Physical State |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| $\text{XeF}_2$ | $sp^3d$ | 2 | 3 (equatorial) | Linear | Colorless crystalline solid |
+| $\text{XeF}_4$ | $sp^3d^2$ | 4 | 2 (trans axial) | Square planar | Colorless crystalline solid |
+| $\text{XeF}_6$ | $sp^3d^3$ | 6 | 1 | Distorted Octahedral | Colorless crystalline solid |
+| $\text{XeO}_3$ | $sp^3$ | 3 ($\sigma$) + 3 ($\pi$) | 1 | Pyramidal | Colorless explosive solid |
+| $\text{XeOF}_4$ | $sp^3d^2$ | 5 ($\sigma$) + 1 ($\pi$) | 1 | Square Pyramidal | Colorless liquid |
+| $\text{XeO}_2\text{F}_2$ | $sp^3d$ | 4 ($\sigma$) + 2 ($\pi$) | 1 | See-saw | Colorless solid |
+---
+
+Q: What is the molecular geometry and hybridization of Xenon Fluorides?
+A: Xenon Difluoride ($XeF_2$) is linear in geometry with $sp^3d$ hybridization (2 bond pairs and 3 equatorial lone pairs).
+WHY: 8 valence electrons + 2 from fluorine = 10 electrons (5 electron pairs). The 3 lone pairs reside in the equatorial plane at $120^\circ$ angles, canceling their dipole moments.
+TAGS: grp18, xenon-geometry, vsepr, jee-main
+TWO-WAY: false
+STAR: true
+
+Q: What is the molecular geometry and hybridization of Xenon Fluorides?
+A: Xenon Tetrafluoride ($XeF_4$) has a square planar shape with $sp^3d^2$ hybridization (4 bond pairs and 2 lone pairs situated opposite to each other in axial positions).
+WHY: 8 valence electrons + 4 from fluorine = 12 electrons (6 electron pairs). The 2 lone pairs take trans positions to achieve minimal electronic repulsion ($180^\circ$).
+TAGS: grp18, xenon-geometry, vsepr, jee-main
+TWO-WAY: false
+STAR: true
+
+Q: What is the molecular geometry and hybridization of Xenon Fluorides?
+A: Xenon Hexafluoride ($XeF_6$) has a distorted octahedral (capped octahedral) shape in the gas phase with $sp^3d^3$ hybridization (6 bond pairs and 1 active lone pair).
+WHY: 8 valence electrons + 6 from fluorine = 14 electrons (7 electron pairs). The presence of the sterically active lone pair distorts the regular octahedron.
+TAGS: grp18, xenon-geometry, vsepr, jee-advanced
+TWO-WAY: false
+STAR: true
+
+Q: What are the products of complete hydrolysis of Xenon Hexafluoride ($XeF_6$)?
+A: Xenon Trioxide ($XeO_3$) and Hydrofluoric acid ($HF$): $XeF_6 + 3H_2O \rightarrow XeO_3 + 6HF$.
+WHY: This is a non-redox replacement reaction where the oxidation state of Xenon remains $+6$ throughout. $XeO_3$ is a colorless, dangerously explosive hygroscopic solid.
+TAGS: grp18, hydrolysis, reactions, bitsat
+TWO-WAY: true
+STAR: true

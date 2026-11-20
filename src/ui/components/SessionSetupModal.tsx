@@ -25,23 +25,20 @@ type SessionSetupModalProps = {
 };
 
 const modes = [
-  ['about-to-forget', 'About to forget', 'Strengthen the shaky ones'],
-  ['due', 'Due cards', 'Keep your rhythm going'],
-  ['random', 'A little of everything', 'Mix up your practice']
+  ['about-to-forget', 'About to forget'],
+  ['due', 'Due cards'],
+  ['random', 'Random']
 ] as const;
 
 export function SessionSetupModal({ nodes, settings, ready, error, onClose, onStart }: SessionSetupModalProps) {
   const [scopeNodeId, setScopeNodeId] = useState(nodes[0]?.id ?? '');
   const [mode, setMode] = useState<StudyMode>('about-to-forget');
   const [amount, setAmount] = useState(10);
-  const [unit, setUnit] = useState<'cards' | 'minutes'>('cards');
   const [includeNew, setIncludeNew] = useState(true);
   const [viewMode, setViewMode] = useState<'cards' | 'families'>('cards');
   const [families, setFamilies] = useState<CardFamilyGroup[]>([]);
   const [selectedFamilyKeys, setSelectedFamilyKeys] = useState<string[]>([]);
   const [starredOnly, setStarredOnly] = useState(false);
-
-  const max = unit === 'cards' ? 100 : 60;
 
   useEffect(() => {
     let active = true;
@@ -83,18 +80,16 @@ export function SessionSetupModal({ nodes, settings, ready, error, onClose, onSt
         <button className="modal-close" aria-label="Close session setup" onClick={onClose}>
           ×
         </button>
-        <div className="section-heading">
+        <div className="section-heading" style={{ marginBottom: '14px' }}>
           <div>
-            <p className="eyebrow">Make it count</p>
-            <h2 id="session-modal-title">Plan your session</h2>
+            <h2 id="session-modal-title" style={{ margin: 0, fontSize: '20px' }}>Plan your session</h2>
           </div>
-          <span className="session-spark" aria-hidden="true">✦</span>
         </div>
 
         <NodeSelect nodes={nodes} value={scopeNodeId} onChange={setScopeNodeId} label="Study area (includes topics)" />
 
         {/* Study Type: Single cards vs Families */}
-        <div className="session-mode-switch" style={{ margin: '12px 0 16px' }}>
+        <div className="session-mode-switch" style={{ margin: '12px 0 14px' }}>
           <label style={{ display: 'block', fontSize: '13px', fontWeight: 800, color: 'var(--ink-soft)', marginBottom: '6px' }}>
             Study format
           </label>
@@ -102,7 +97,7 @@ export function SessionSetupModal({ nodes, settings, ready, error, onClose, onSt
             <button
               type="button"
               className={viewMode === 'cards' ? 'primary-button' : 'secondary-button'}
-              style={{ flex: 1, minHeight: '40px', fontSize: '14px' }}
+              style={{ flex: 1, minHeight: '38px', fontSize: '13px' }}
               onClick={() => setViewMode('cards')}
             >
               Single cards
@@ -112,8 +107,8 @@ export function SessionSetupModal({ nodes, settings, ready, error, onClose, onSt
               className={viewMode === 'families' ? 'primary-button' : 'secondary-button'}
               style={{
                 flex: 1,
-                minHeight: '40px',
-                fontSize: '14px',
+                minHeight: '38px',
+                fontSize: '13px',
                 opacity: families.length === 0 ? 0.45 : 1,
                 cursor: families.length === 0 ? 'not-allowed' : 'pointer'
               }}
@@ -130,7 +125,7 @@ export function SessionSetupModal({ nodes, settings, ready, error, onClose, onSt
 
         {/* When Families mode is selected: family multi-select */}
         {viewMode === 'families' && (
-          <div className="families-picker" style={{ margin: '0 0 16px', padding: '12px', background: 'var(--indigo-tint)', borderRadius: 'var(--radius-card)' }}>
+          <div className="families-picker" style={{ margin: '0 0 14px', padding: '12px', background: 'var(--indigo-tint)', borderRadius: 'var(--radius-card)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
               <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--navy)' }}>
                 Select families to study
@@ -144,7 +139,7 @@ export function SessionSetupModal({ nodes, settings, ready, error, onClose, onSt
                 {selectedFamilyKeys.length === families.length ? 'Deselect all' : 'All families'}
               </button>
             </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', maxHeight: '120px', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', maxHeight: '110px', overflowY: 'auto' }}>
               {families.map((f) => {
                 const isSelected = selectedFamilyKeys.includes(f.familyKey);
                 return (
@@ -171,72 +166,73 @@ export function SessionSetupModal({ nodes, settings, ready, error, onClose, onSt
           </div>
         )}
 
-        <fieldset className="mode-picker">
-          <legend>Choose your focus</legend>
-          {modes.map(([value, label, description]) => (
-            <button
-              key={value}
-              type="button"
-              className={`mode-option${mode === value ? ' selected' : ''}`}
-              aria-pressed={mode === value}
-              onClick={() => setMode(value)}
-            >
-              <span className="mode-option-check" aria-hidden="true">{mode === value ? '✓' : ''}</span>
-              <span><strong>{label}</strong><small>{description}</small></span>
-            </button>
-          ))}
-        </fieldset>
+        {/* 3-way toggle button group for focus mode */}
+        <div className="mode-segmented-group" style={{ margin: '12px 0 16px' }}>
+          <label style={{ display: 'block', fontSize: '13px', fontWeight: 800, color: 'var(--ink-soft)', marginBottom: '6px' }}>
+            Focus mode
+          </label>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px', background: 'var(--indigo-tint)', padding: '4px', borderRadius: '14px' }}>
+            {modes.map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                className={`mode-toggle-btn${mode === value ? ' active' : ''}`}
+                style={{
+                  padding: '8px 4px',
+                  borderRadius: '10px',
+                  border: 'none',
+                  background: mode === value ? 'var(--indigo)' : 'transparent',
+                  color: mode === value ? '#ffffff' : 'var(--ink)',
+                  fontSize: '12px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                  boxShadow: mode === value ? '0 2px 6px rgba(69, 71, 214, 0.3)' : 'none',
+                  textAlign: 'center'
+                }}
+                onClick={() => setMode(value)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
 
-        <div className="amount-heading">
-          <label htmlFor="session-amount">Session length</label>
-          <strong>{amount} <span>{unit}</span></strong>
+        {/* Session length (cards only) */}
+        <div className="amount-heading" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+          <label htmlFor="session-amount" style={{ fontSize: '13px', fontWeight: 800, color: 'var(--ink-soft)' }}>Session length</label>
+          <strong style={{ fontSize: '15px', fontWeight: 800, color: 'var(--navy)' }}>{amount} cards</strong>
         </div>
         <input
           id="session-amount"
           className="amount-slider"
           type="range"
           min="1"
-          max={max}
-          value={Math.min(amount, max)}
+          max="100"
+          value={amount}
           onChange={(event) => setAmount(Number(event.target.value))}
+          style={{ width: '100%', marginBottom: '16px' }}
         />
 
-        <div className="session-options-row">
-          <div className="unit-toggle" aria-label="Session length unit">
-            <button
-              type="button"
-              className={unit === 'cards' ? 'active' : ''}
-              aria-pressed={unit === 'cards'}
-              onClick={() => { setUnit('cards'); setAmount(Math.min(amount, 100)); }}
-            >
-              Cards
-            </button>
-            <button
-              type="button"
-              className={unit === 'minutes' ? 'active' : ''}
-              aria-pressed={unit === 'minutes'}
-              onClick={() => { setUnit('minutes'); setAmount(Math.min(amount, 60)); }}>Minutes</button>
-          </div>
+        {/* Starred only and Include new cards in the same row */}
+        <div className="session-options-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', marginBottom: '18px' }}>
+          <label className="checkbox-row" style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: 700 }}>
+            <input
+              type="checkbox"
+              checked={includeNew}
+              onChange={(event) => setIncludeNew(event.target.checked)}
+            />
+            <span>Include new cards</span>
+          </label>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <label className="checkbox-row">
-              <input
-                type="checkbox"
-                checked={includeNew}
-                onChange={(event) => setIncludeNew(event.target.checked)}
-              />
-              <span>Include new cards <small>Daily cap: {settings.newCardsPerDay}</small></span>
-            </label>
-
-            <label className="checkbox-row">
-              <input
-                type="checkbox"
-                checked={starredOnly}
-                onChange={(event) => setStarredOnly(event.target.checked)}
-              />
-              <span>⭐ Starred only</span>
-            </label>
-          </div>
+          <label className="checkbox-row" style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: 700 }}>
+            <input
+              type="checkbox"
+              checked={starredOnly}
+              onChange={(event) => setStarredOnly(event.target.checked)}
+            />
+            <span>⭐ Starred only</span>
+          </label>
         </div>
 
         {error && <p className="error-message" role="alert">{error}</p>}
@@ -248,7 +244,7 @@ export function SessionSetupModal({ nodes, settings, ready, error, onClose, onSt
               scopeNodeId,
               mode,
               amount,
-              unit,
+              unit: 'cards',
               includeNew,
               viewMode,
               selectedFamilyKeys: selectedFamilyKeys.length > 0 ? selectedFamilyKeys : undefined,

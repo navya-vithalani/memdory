@@ -200,6 +200,8 @@ if (typeof window !== 'undefined') {
 
 export const defaultSettings: SettingsRecord = {
   id: 'settings',
+  userName: 'dory',
+  targetCardsPerDay: 20,
   theme: 'light',
   dayStartMinutes: 210,
   newCardsPerDay: 20,
@@ -215,7 +217,28 @@ export async function ensureDefaultSettings(): Promise<void> {
   const existing = await db.settings.get('settings');
   if (!existing) {
     await db.settings.put({ ...defaultSettings });
-  } else if (existing.desiredRetention === undefined) {
-    await db.settings.update('settings', { desiredRetention: 0.9 });
+  } else {
+    const patch: Partial<SettingsRecord> = {};
+    if (existing.userName === undefined) patch.userName = 'dory';
+    if (existing.targetCardsPerDay === undefined) patch.targetCardsPerDay = existing.dailyGoal ?? 20;
+    if (existing.desiredRetention === undefined) patch.desiredRetention = 0.9;
+    if (Object.keys(patch).length > 0) {
+      await db.settings.update('settings', patch);
+    }
   }
+}
+
+export async function resetAppDatabase(): Promise<void> {
+  await db.transaction('rw', [db.nodes, db.notes, db.cards, db.reviewItems, db.reviews, db.sessions, db.tags, db.imports, db.settings], async () => {
+    await db.nodes.clear();
+    await db.notes.clear();
+    await db.cards.clear();
+    await db.reviewItems.clear();
+    await db.reviews.clear();
+    await db.sessions.clear();
+    await db.tags.clear();
+    await db.imports.clear();
+    await db.settings.clear();
+    await db.settings.put({ ...defaultSettings });
+  });
 }

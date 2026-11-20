@@ -12,12 +12,10 @@ type AppMenuProps = {
 const icon = (path: ReactNode) => <svg viewBox="0 0 24 24" aria-hidden="true">{path}</svg>;
 
 const items: Array<{ label: string; to: string; icon: ReactNode }> = [
-  { label: 'Import items', to: '/cards?action=import', icon: icon(<path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14" />) },
-  { label: 'Start session', to: '/cards?action=start', icon: icon(<path d="M8 5v14l11-7z" />) },
-  { label: 'Study insights', to: '/analysis', icon: icon(<path d="M4 19V9M10 19V5M16 19v-7M2 21h20" />) },
-  { label: 'Streak & activity', to: '/profile', icon: icon(<path d="M12 3c1 4 5 5.5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-5 1-9z" />) },
-  { label: 'Backup & export', to: '/settings#backup', icon: icon(<path d="M12 21V9m0 0 4 4m-4-4-4 4M5 3h14" />) },
-  { label: 'Settings', to: '/settings', icon: icon(<><path d="M4 7h9M17 7h3M4 17h3M11 17h9" /><circle cx="15" cy="7" r="2" /><circle cx="9" cy="17" r="2" /></>) }
+  { label: 'Learning map', to: '/map', icon: icon(<path d="M9 6l6 6-6 6M3 12h12M21 5v14" />) },
+  { label: 'Analysis', to: '/analysis', icon: icon(<path d="M4 19V9M10 19V5M16 19v-7M2 21h20" />) },
+  { label: 'Streak & activity', to: '/activity', icon: icon(<path d="M12 3c1 4 5 5.5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-5 1-9z" />) },
+  { label: 'Profile', to: '/profile', icon: icon(<><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></>) }
 ];
 
 export function AppMenu({ open, onClose }: AppMenuProps) {
@@ -88,7 +86,7 @@ export function AppMenu({ open, onClose }: AppMenuProps) {
                 </div>
                 <svg
                   className="menu-ocean-waves"
-                  viewBox="0 0 320 90"
+                  viewBox="0 0 320 130"
                   preserveAspectRatio="none"
                   aria-hidden="true"
                 >
@@ -107,16 +105,18 @@ export function AppMenu({ open, onClose }: AppMenuProps) {
                     </linearGradient>
                   </defs>
                   {/* Background wave */}
-                  <path d="M 0 35 Q 80 15, 160 35 T 320 35 L 320 90 L 0 90 Z" fill="url(#waveGradBack)" />
+                  <path d="M 0 45 Q 80 20, 160 45 T 320 45 L 320 130 L 0 130 Z" fill="url(#waveGradBack)" />
                   {/* Midground wave */}
-                  <path d="M 0 50 Q 80 28, 160 50 T 320 50 L 320 90 L 0 90 Z" fill="url(#waveGradMid)" />
+                  <path d="M 0 68 Q 80 40, 160 68 T 320 68 L 320 130 L 0 130 Z" fill="url(#waveGradMid)" />
                   {/* Foreground wave */}
-                  <path d="M 0 65 Q 90 45, 180 65 T 320 60 L 320 90 L 0 90 Z" fill="url(#waveGradFore)" />
+                  <path d="M 0 90 Q 90 65, 180 90 T 320 85 L 320 130 L 0 130 Z" fill="url(#waveGradFore)" />
                   {/* Water bubbles */}
-                  <circle cx="85" cy="40" r="2.5" fill="#f0f9ff" opacity="0.8" />
-                  <circle cx="130" cy="56" r="3" fill="#f0f9ff" opacity="0.6" />
-                  <circle cx="210" cy="44" r="2" fill="#f0f9ff" opacity="0.75" />
-                  <circle cx="270" cy="62" r="2.5" fill="#f0f9ff" opacity="0.7" />
+                  <circle cx="85" cy="55" r="3" fill="#f0f9ff" opacity="0.8" />
+                  <circle cx="130" cy="78" r="3.5" fill="#f0f9ff" opacity="0.6" />
+                  <circle cx="210" cy="62" r="2.5" fill="#f0f9ff" opacity="0.75" />
+                  <circle cx="270" cy="90" r="3.5" fill="#f0f9ff" opacity="0.7" />
+                  <circle cx="50" cy="95" r="2.5" fill="#f0f9ff" opacity="0.65" />
+                  <circle cx="170" cy="105" r="3" fill="#f0f9ff" opacity="0.6" />
                 </svg>
               </div>
             </div>

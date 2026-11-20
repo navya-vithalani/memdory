@@ -11,10 +11,11 @@ function getScreenTitle(pathname: string): string {
   if (pathname === '/') return 'Home';
   if (pathname.startsWith('/notes')) return 'Notes';
   if (pathname === '/cards/browse') return 'Browse Cards';
+  if (pathname === '/map') return 'Learning Map';
   if (pathname.startsWith('/cards')) return 'Cards';
   if (pathname.startsWith('/analysis')) return 'Study Insights';
-  if (pathname.startsWith('/profile')) return 'Streak & Activity';
-  if (pathname.startsWith('/settings')) return 'Settings';
+  if (pathname.startsWith('/activity')) return 'Streak & Activity';
+  if (pathname.startsWith('/profile') || pathname.startsWith('/settings')) return 'Profile';
   return 'Home';
 }
 
@@ -35,7 +36,7 @@ export function AppHeader({ onMenu, menuOpen }: AppHeaderProps) {
         <span />
       </button>
       <h1 className="header-title">{title}</h1>
-      <Link to="/settings" className="header-brand-group" aria-label="Open settings">
+      <Link to="/profile" className="header-brand-group" aria-label="Open profile and settings">
         <Mnemo mood="happy" className="header-mascot" />
         <span className="header-brand-name">{APP_NAME}</span>
       </Link>

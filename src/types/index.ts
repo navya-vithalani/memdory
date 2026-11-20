@@ -129,6 +129,8 @@ export type ImportRecord = {
 
 export type SettingsRecord = {
   id: string;
+  userName?: string;
+  targetCardsPerDay?: number;
   theme: ThemeName;
   dayStartMinutes: number;
   newCardsPerDay: number;
