@@ -286,6 +286,7 @@ export function NotesScreen() {
       {editorOpen && (
         <NoteEditorModal
           initialNote={editingNote}
+          tagsMap={tagsMap}
           onClose={() => {
             setEditorOpen(false);
             setEditingNote(null);

@@ -43,6 +43,7 @@ export type CardRecord = {
   lapses?: number;
   lastReview?: number | null;
   trap?: boolean;
+  reviewItemId?: string;
 };
 
 export type ReviewItemRecord = {

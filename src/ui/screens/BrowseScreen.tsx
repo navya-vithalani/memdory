@@ -4,7 +4,7 @@ import { useTree } from '../../hooks/useTree';
 import { db } from '../../data/db';
 import { getRecallProbability } from '../../core/scheduler/reviewCard';
 import { getDescendantIds } from '../../core/tree/tree';
-import { updateCardRecord, deleteCardRecord, createCard } from '../../data/repositories/cardRepository';
+import { updateCardRecord, deleteCardRecord, createCard, hydrateCardsWithReviewItems } from '../../data/repositories/cardRepository';
 import type { CardRecord, TagRecord, TreeNode } from '../../types';
 import { RichText } from '../components/RichText';
 import { StatCard } from '../components/StatCard';
@@ -40,7 +40,8 @@ export function BrowseScreen() {
       db.cards.toArray(),
       db.tags.toArray()
     ]);
-    setCards(allCards);
+    const hydratedCards = await hydrateCardsWithReviewItems(allCards);
+    setCards(hydratedCards);
     setTags(new Map(allTags.map((t) => [t.id, t])));
   };
 

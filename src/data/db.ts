@@ -75,6 +75,7 @@ export class memdoryDb extends Dexie {
       const cardsTable = tx.table('cards');
       const reviewItemsTable = tx.table('reviewItems');
       const cardToReviewItemId = new Map<string, string>();
+      const newReviewItems: ReviewItemRecord[] = [];
 
       await cardsTable.toCollection().modify((card: Record<string, unknown>) => {
         const cardId = String(card.id);
@@ -91,7 +92,7 @@ export class memdoryDb extends Dexie {
         const lastReview = typeof card.lastReview === 'number' ? card.lastReview : null;
         const trap = Boolean(card.trap);
 
-        void reviewItemsTable.add({
+        newReviewItems.push({
           id: reviewItemId,
           cardId,
           direction: 'forward',
@@ -116,6 +117,10 @@ export class memdoryDb extends Dexie {
         card.importId = null;
         card.updatedAt = createdAt;
       });
+
+      if (newReviewItems.length > 0) {
+        await reviewItemsTable.bulkAdd(newReviewItems);
+      }
 
       const reviewsTable = tx.table('reviews');
       await reviewsTable.toCollection().modify((review: Record<string, unknown>) => {
@@ -165,7 +170,7 @@ export class memdoryDb extends Dexie {
         for (let i = 0; i < list.length; i += 1) {
           const note = list[i];
           const createdAt = typeof note.createdAt === 'number' ? note.createdAt : Date.now();
-          void notesTable.update(note.id, {
+          await notesTable.update(note.id, {
             type: 'normal',
             data: null,
             tagIds: [],

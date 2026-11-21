@@ -79,4 +79,16 @@ describe('Note repository (Phase 5)', () => {
     await deleteNote(note.id);
     expect(await db.notes.count()).toBe(0);
   });
+
+  it('moves note correctly even when called with parent nodeId (subtopic reorder)', async () => {
+    const subNodeId = 'topic-sub';
+    await db.nodes.add({ id: subNodeId, parentId: nodeId, name: 'Subtopic', order: 0, createdAt: 1100 });
+    const n1 = await createNote(subNodeId, 'N1', 'B1');
+    const n2 = await createNote(subNodeId, 'N2', 'B2');
+
+    // Call moveNote passing parent nodeId instead of subNodeId
+    await moveNote(nodeId, n2.id, 'up');
+    const list = await listNotes(subNodeId);
+    expect(list.map((n) => n.id)).toEqual([n2.id, n1.id]);
+  });
 });

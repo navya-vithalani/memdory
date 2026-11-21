@@ -5,6 +5,7 @@ import { RichText } from '../RichText';
 
 type NoteEditorModalProps = {
   initialNote?: NoteRecord | null;
+  tagsMap?: Map<string, string>;
   onClose: () => void;
   onSave: (
     title: string | null,
@@ -30,13 +31,17 @@ const NOTE_TYPES = [
 
 const PALETTE = ['indigo', 'sky', 'mint', 'sun', 'rose', 'violet', 'slate'] as const;
 
-export function NoteEditorModal({ initialNote, onClose, onSave }: NoteEditorModalProps) {
+export function NoteEditorModal({ initialNote, tagsMap, onClose, onSave }: NoteEditorModalProps) {
   const [type, setType] = useState<string>(initialNote?.type || 'normal');
   const [title, setTitle] = useState(initialNote?.title || '');
   const [body, setBody] = useState(initialNote?.body || '');
   const [color, setColor] = useState<string | null>(initialNote?.color || null);
   const [starred, setStarred] = useState(Boolean(initialNote?.starred));
-  const [tagsInput, setTagsInput] = useState('');
+  const initialTags = (initialNote?.tagIds ?? [])
+    .map((id) => tagsMap?.get(id) || '')
+    .filter(Boolean)
+    .join(', ');
+  const [tagsInput, setTagsInput] = useState(initialTags);
   const [previewTab, setPreviewTab] = useState<'edit' | 'preview'>('edit');
 
   // Mnemonic specific state

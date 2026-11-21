@@ -4,6 +4,7 @@ import { useTree } from '../../hooks/useTree';
 import { db } from '../../data/db';
 import { getRecallProbability } from '../../core/scheduler/reviewCard';
 import { getDescendantIds } from '../../core/tree/tree';
+import { hydrateCardsWithReviewItems } from '../../data/repositories/cardRepository';
 import type { CardRecord, NoteRecord, TreeNode } from '../../types';
 import { StatCard } from '../components/StatCard';
 
@@ -29,9 +30,11 @@ export function LearningMapScreen() {
 
   useEffect(() => {
     let active = true;
-    void Promise.all([db.cards.toArray(), db.notes.toArray()]).then(([allCards, allNotes]) => {
+    void Promise.all([db.cards.toArray(), db.notes.toArray()]).then(async ([allCards, allNotes]) => {
       if (!active) return;
-      setCards(allCards);
+      const hydrated = await hydrateCardsWithReviewItems(allCards);
+      if (!active) return;
+      setCards(hydrated);
       setNotes(allNotes);
     });
     return () => {

@@ -9,6 +9,7 @@ import {
 } from '../core/streak/streak';
 import { getDescendantIds } from '../core/tree/tree';
 import { db } from '../data/db';
+import { hydrateCardsWithReviewItems } from '../data/repositories/cardRepository';
 import type { SessionRecord, SettingsRecord, TreeNode } from '../types';
 
 const AT_RISK_RECALL = 0.9;
@@ -31,11 +32,12 @@ export type HomeSnapshot = {
 
 async function loadSnapshot(settings: SettingsRecord, nodes: TreeNode[]): Promise<HomeSnapshot> {
   const now = Date.now();
-  const [cards, reviewsToday, allSessions] = await Promise.all([
+  const [rawCards, reviewsToday, allSessions] = await Promise.all([
     db.cards.toArray(),
     db.reviews.where('timestamp').aboveOrEqual(getStudyDayStartTimestamp(now, settings.dayStartMinutes)).count(),
     db.sessions.toArray()
   ]);
+  const cards = await hydrateCardsWithReviewItems(rawCards);
 
   const completedDayKeys = getCompletedStudyDays(allSessions, settings.dayStartMinutes);
   const todayKey = studyDayKey(now, settings.dayStartMinutes);

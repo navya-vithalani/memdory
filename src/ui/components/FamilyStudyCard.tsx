@@ -47,111 +47,61 @@ export function FamilyStudyCard({
   const gradedCount = cards.filter((c) => gradedCards.has(c.id)).length;
 
   return (
-    <article className="family-study-container" style={{ width: '100%', maxWidth: '420px', margin: '0 auto' }}>
+    <article className="family-study-container">
       {/* Header with topic and shared prompt */}
-      <div
-        className="family-header"
-        style={{
-          background: 'var(--surface)',
-          padding: '16px 20px',
-          borderRadius: 'var(--radius-card)',
-          boxShadow: '0 4px 20px var(--shadow-card)',
-          marginBottom: '16px',
-          textAlign: 'center'
-        }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+      <div className="family-header">
+        <div className="family-header-meta">
           {topicName && (
-            <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--ink-soft)' }}>
+            <span className="family-topic-name">
               {topicName}
             </span>
           )}
-          <span
-            style={{
-              fontSize: '11px',
-              fontWeight: 800,
-              padding: '2px 8px',
-              borderRadius: '999px',
-              background: 'var(--indigo-tint)',
-              color: 'var(--indigo)'
-            }}
-          >
+          <span className="family-mode-badge">
             Family Mode · {gradedCount} of {cards.length}
           </span>
         </div>
 
-        <h2 style={{ margin: '4px 0', fontSize: '22px', fontWeight: 800, color: 'var(--ink)' }}>
+        <h2 className="family-prompt-title">
           <RichText text={front} />
         </h2>
       </div>
 
       {/* Member rows */}
-      <div className="family-rows" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+      <div className="family-rows">
         {cards.map((card, idx) => {
           const isExpanded = expandedId === card.id;
           const rating = gradedCards.get(card.id);
           const firstTagId = card.tagIds?.[0];
           const label = (firstTagId ? tagLabels.get(firstTagId) : null) || `Part ${idx + 1}`;
 
+          const cardStateClass = isExpanded ? ' is-active' : rating ? ' is-graded' : '';
+          const badgeStateClass = isExpanded ? ' is-active' : rating ? ' is-graded' : '';
+          const ratingClass = rating === 'medium' ? ' is-gotit' : rating === 'blank' ? ' is-blank' : rating === 'wrong' ? ' is-wrong' : '';
+
           return (
             <div
               key={card.id}
-              className="family-row-card"
-              style={{
-                background: 'var(--surface)',
-                border: rating ? '1px solid var(--line)' : isExpanded ? '2px solid var(--indigo)' : '1px solid var(--line)',
-                borderRadius: '16px',
-                padding: '12px 16px',
-                boxShadow: '0 2px 10px var(--shadow-soft)',
-                transition: 'all 0.2s ease'
-              }}
+              className={`family-row-card${cardStateClass}`}
             >
               <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  cursor: 'pointer'
-                }}
+                className="family-row-toggle"
                 onClick={() => setExpandedId(isExpanded ? null : card.id)}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <span
-                    style={{
-                      fontSize: '13px',
-                      fontWeight: 800,
-                      padding: '4px 10px',
-                      borderRadius: '8px',
-                      background: rating ? 'var(--line)' : isExpanded ? 'var(--indigo)' : 'var(--indigo-tint)',
-                      color: rating ? 'var(--ink-soft)' : isExpanded ? '#ffffff' : 'var(--indigo)',
-                      letterSpacing: '0.02em',
-                      border: isExpanded ? 'none' : '1px solid rgba(79, 70, 229, 0.2)'
-                    }}
-                  >
+                <div className="family-row-left">
+                  <span className={`family-part-badge${badgeStateClass}`}>
                     {label}
                   </span>
-                  <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--ink)' }}>
+                  <span className="family-action-text">
                     {isExpanded ? 'Hide' : rating ? 'Show answer' : 'Reveal answer'}
                   </span>
                 </div>
 
                 {rating ? (
-                  <span
-                    style={{
-                      fontSize: '12px',
-                      fontWeight: 800,
-                      color:
-                        rating === 'medium'
-                          ? 'var(--easy)'
-                          : rating === 'blank'
-                          ? 'var(--hard)'
-                          : 'var(--wrong)'
-                    }}
-                  >
+                  <span className={`family-status-graded${ratingClass}`}>
                     {rating === 'medium' ? '✓ Got it' : rating === 'blank' ? '○ Blank' : '⚠ Wrong'}
                   </span>
                 ) : (
-                  <span style={{ fontSize: '12px', color: 'var(--ink-soft)' }}>
+                  <span className="family-caret">
                     {isExpanded ? '▲' : '▼'}
                   </span>
                 )}
@@ -159,63 +109,36 @@ export function FamilyStudyCard({
 
               {/* Revealed content and grading */}
               {isExpanded && (
-                <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid var(--line)' }}>
-                  <div style={{ fontSize: '15px', color: 'var(--ink)', lineHeight: 1.5, marginBottom: '10px' }}>
+                <div className="family-revealed-section">
+                  <div className="family-answer-content">
                     <RichText text={card.back} />
                     {card.explanation && (
-                      <p style={{ margin: '6px 0 0', fontSize: '13px', color: 'var(--ink-soft)' }}>
+                      <p className="family-explanation">
                         <RichText text={card.explanation} />
                       </p>
                     )}
                   </div>
 
                   {!rating && (
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginTop: '12px' }}>
+                    <div className="family-grade-buttons">
                       <button
                         type="button"
                         onClick={() => onRateCard(card, 'medium')}
-                        style={{
-                          padding: '8px',
-                          borderRadius: '10px',
-                          border: 'none',
-                          background: 'var(--easy)',
-                          color: '#fff',
-                          fontWeight: 800,
-                          fontSize: '13px',
-                          cursor: 'pointer'
-                        }}
+                        className="family-grade-btn btn-gotit"
                       >
                         Got it
                       </button>
                       <button
                         type="button"
                         onClick={() => onRateCard(card, 'blank')}
-                        style={{
-                          padding: '8px',
-                          borderRadius: '10px',
-                          border: 'none',
-                          background: 'var(--hard)',
-                          color: '#fff',
-                          fontWeight: 800,
-                          fontSize: '13px',
-                          cursor: 'pointer'
-                        }}
+                        className="family-grade-btn btn-blank"
                       >
                         Blank
                       </button>
                       <button
                         type="button"
                         onClick={() => onRateCard(card, 'wrong')}
-                        style={{
-                          padding: '8px',
-                          borderRadius: '10px',
-                          border: 'none',
-                          background: 'var(--wrong)',
-                          color: '#fff',
-                          fontWeight: 800,
-                          fontSize: '13px',
-                          cursor: 'pointer'
-                        }}
+                        className="family-grade-btn btn-wrong"
                       >
                         Wrong
                       </button>
@@ -229,11 +152,10 @@ export function FamilyStudyCard({
       </div>
 
       {allGraded && (
-        <div style={{ textAlign: 'center', marginTop: '20px' }}>
+        <div className="family-footer-actions">
           <button
             type="button"
             className="primary-button"
-            style={{ width: '100%', minHeight: '48px', fontSize: '16px' }}
             onClick={onNextFamily}
           >
             Next Family →

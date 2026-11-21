@@ -115,3 +115,17 @@ describe('wifi rating geometry', () => {
     expect(segments.filter((s) => s.labelPath === null).map((s) => s.id)).toEqual(['wrong']);
   });
 });
+
+describe('latex chemistry rendering', () => {
+  it('renders chemical formulas via mhchem extension without throwing', async () => {
+    await import('katex/dist/contrib/mhchem.mjs');
+    const katex = (await import('katex')).default;
+    const html1 = katex.renderToString('\\ce{H2O}', { throwOnError: true });
+    expect(html1).toContain('katex');
+    expect(html1).toContain('H');
+
+    const html2 = katex.renderToString('\\ce{XeF4 + 2H2O -> XeO2F2 + 2HF}', { throwOnError: true });
+    expect(html2).toContain('Xe');
+    expect(html2).toContain('x-arrow');
+  });
+});

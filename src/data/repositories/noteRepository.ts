@@ -243,7 +243,12 @@ export async function updateNote(
 
 export async function moveNote(nodeId: string, noteId: string, direction: 'up' | 'down'): Promise<void> {
   await db.transaction('rw', db.notes, async () => {
-    const notes = await db.notes.where('nodeId').equals(nodeId).toArray();
+    let targetNodeId = nodeId;
+    const currentNote = await db.notes.get(noteId);
+    if (currentNote?.nodeId) {
+      targetNodeId = currentNote.nodeId;
+    }
+    const notes = await db.notes.where('nodeId').equals(targetNodeId).toArray();
     notes.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
     const index = notes.findIndex((n) => n.id === noteId);

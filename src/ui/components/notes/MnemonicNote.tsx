@@ -32,13 +32,30 @@ export function MnemonicNote({ cue, meaning, story, onExpandToggle, isExpanded =
     setActiveFace(prev);
   }
 
-  // Morph recipe: split text into words for staggered token fade/blur animation
+  // Morph recipe: split text into words for staggered token fade/blur animation while preserving LaTeX math blocks
   function renderWords(text: string): ReactNode {
     if (reduceMotion) {
       return <RichText text={text} />;
     }
 
-    const words = text.split(/(\s+)/);
+    const tokens: string[] = [];
+    const regex = /(\$\$[\s\S]*?\$\$|\$[^$\n]*?\$|\s+)/g;
+    let lastIndex = 0;
+    let match: RegExpExecArray | null;
+
+    while ((match = regex.exec(text)) !== null) {
+      if (match.index > lastIndex) {
+        const subWords = text.slice(lastIndex, match.index).split(/(\s+)/);
+        tokens.push(...subWords);
+      }
+      tokens.push(match[0]);
+      lastIndex = regex.lastIndex;
+    }
+    if (lastIndex < text.length) {
+      const subWords = text.slice(lastIndex).split(/(\s+)/);
+      tokens.push(...subWords);
+    }
+
     return (
       <motion.span
         initial="hidden"
@@ -50,13 +67,13 @@ export function MnemonicNote({ cue, meaning, story, onExpandToggle, isExpanded =
         }}
         style={{ display: 'inline' }}
       >
-        {words.map((chunk, index) => {
-          if (/\s+/.test(chunk)) {
+        {tokens.filter(Boolean).map((chunk, index) => {
+          if (/^\s+$/.test(chunk)) {
             return chunk;
           }
           return (
             <motion.span
-              key={`${index}-${chunk}`}
+              key={`${index}-${chunk.slice(0, 16)}`}
               variants={{
                 hidden: { opacity: 0, filter: 'blur(6px)', y: 6 },
                 visible: { opacity: 1, filter: 'blur(0px)', y: 0, transition: { duration: 0.25 } },

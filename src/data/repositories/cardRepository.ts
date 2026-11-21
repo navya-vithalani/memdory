@@ -48,6 +48,44 @@ export async function listStudyItemsInScope(nodeId: string | null): Promise<Stud
     .filter((entry): entry is StudyCardItem => entry !== null);
 }
 
+export async function hydrateCardsWithReviewItems(cards: CardRecord[]): Promise<CardRecord[]> {
+  if (cards.length === 0) return [];
+  const cardIds = cards.map((c) => c.id);
+  const reviewItems = await db.reviewItems.where('cardId').anyOf(cardIds).toArray();
+  const itemMap = new Map<string, ReviewItemRecord>();
+  for (const item of reviewItems) {
+    const existing = itemMap.get(item.cardId);
+    if (!existing) {
+      itemMap.set(item.cardId, item);
+    } else {
+      if (existing.lastReview == null && item.lastReview != null) {
+        itemMap.set(item.cardId, item);
+      } else if (existing.lastReview != null && item.lastReview != null && item.due < existing.due) {
+        itemMap.set(item.cardId, item);
+      } else if (existing.lastReview == null && item.lastReview == null && item.due < existing.due) {
+        itemMap.set(item.cardId, item);
+      }
+    }
+  }
+
+  return cards.map((card) => {
+    const item = itemMap.get(card.id);
+    if (!item) return card;
+    return {
+      ...card,
+      due: item.due,
+      stability: item.stability,
+      difficulty: item.difficulty,
+      state: item.state,
+      reps: item.reps,
+      lapses: item.lapses,
+      lastReview: item.lastReview,
+      trap: item.trap,
+      reviewItemId: item.id
+    };
+  });
+}
+
 export async function listCardsInScope(nodeId: string | null): Promise<CardRecord[]> {
   const nodeIds = nodeId === null
     ? null
@@ -57,7 +95,8 @@ export async function listCardsInScope(nodeId: string | null): Promise<CardRecor
     ? await db.cards.toArray()
     : await db.cards.where('nodeId').anyOf(nodeIds).toArray();
 
-  return cards.sort((a, b) => (a.due ?? a.createdAt) - (b.due ?? b.createdAt));
+  const hydrated = await hydrateCardsWithReviewItems(cards);
+  return hydrated.sort((a, b) => (a.due ?? a.createdAt) - (b.due ?? b.createdAt));
 }
 
 export async function previewCardImport(nodeId: string, source: string): Promise<{
@@ -307,9 +346,10 @@ export async function saveReview(
     const dayKey = studyDayKey(timestamp, dayStart);
     const retention = settings?.desiredRetention ?? 0.9;
 
+    const effectiveItemId = reviewItemId || (card as unknown as { reviewItemId?: string }).reviewItemId;
     let targetItem: ReviewItemRecord | undefined;
-    if (reviewItemId) {
-      targetItem = await db.reviewItems.get(reviewItemId);
+    if (effectiveItemId) {
+      targetItem = await db.reviewItems.get(effectiveItemId);
     }
     if (!targetItem) {
       targetItem = await db.reviewItems.where('cardId').equals(card.id).first();

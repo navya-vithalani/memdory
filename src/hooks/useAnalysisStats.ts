@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getRecallProbability } from '../core/scheduler/reviewCard';
 import { db } from '../data/db';
+import { hydrateCardsWithReviewItems } from '../data/repositories/cardRepository';
 import type { ReviewRating } from '../types';
 
 const ratingLabels: ReviewRating[] = ['easy', 'medium', 'hard', 'partial', 'blank', 'wrong'];
@@ -57,7 +58,9 @@ export function useAnalysisStats() {
 
   useEffect(() => {
     let active = true;
-    void Promise.all([db.cards.toArray(), db.reviews.toArray(), db.nodes.toArray(), db.tags.toArray()]).then(([cards, reviews, nodes, tags]) => {
+    void Promise.all([db.cards.toArray(), db.reviews.toArray(), db.nodes.toArray(), db.tags.toArray()]).then(async ([rawCards, reviews, nodes, tags]) => {
+      const cards = await hydrateCardsWithReviewItems(rawCards);
+      if (!active) return;
       const now = new Date();
       const countsByDay = new Map<string, number>();
       const accuracyByDay = new Map<string, { total: number; correct: number }>();
