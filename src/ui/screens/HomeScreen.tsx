@@ -28,24 +28,45 @@ export function HomeScreen() {
   const scopeName = (id: string | null) =>
     nodes.find((node) => node.id === id)?.name ?? 'All topics';
 
+  const userName = settings.userName?.trim() || 'dory';
   let mascotMood: 'happy' | 'sleepy' | 'sad' | 'rotten' = 'happy';
-  let greetingLine = 'Ready when you are.';
-  if (snapshot?.lastSession?.completedAt) {
+  let greetingLine = `Welcome, ${userName}!`;
+
+  if (!snapshot?.lastSession?.completedAt) {
+    mascotMood = 'happy';
+    greetingLine = `Welcome, ${userName}!`;
+  } else {
     const daysSinceLast = Math.floor(
       (Date.now() - snapshot.lastSession.completedAt) / (24 * 60 * 60 * 1000)
     );
-    if (daysSinceLast <= 1) {
+    const streak = snapshot.currentStreak ?? 0;
+    const completedToday = snapshot.completedToday;
+
+    if (completedToday) {
       mascotMood = 'happy';
-      greetingLine = 'Ready when you are.';
+      if (streak >= 7) {
+        greetingLine = `Crushing it, ${userName}! 🔥`;
+      } else if (streak > 1) {
+        greetingLine = `Streak extended, ${userName}!`;
+      } else {
+        greetingLine = `Welcome back, ${userName}!`;
+      }
+    } else if (daysSinceLast <= 1) {
+      mascotMood = 'happy';
+      if (streak >= 3) {
+        greetingLine = `Keep the streak alive, ${userName}!`;
+      } else {
+        greetingLine = `Welcome back, ${userName}!`;
+      }
     } else if (daysSinceLast === 2) {
       mascotMood = 'sleepy';
-      greetingLine = 'A good day to dive back in.';
+      greetingLine = `Missing you, ${userName}!`;
     } else if (daysSinceLast <= 4) {
       mascotMood = 'sad';
-      greetingLine = 'Your cards miss you.';
+      greetingLine = `We miss you, ${userName}!`;
     } else {
       mascotMood = 'rotten';
-      greetingLine = 'Time to revive your memory!';
+      greetingLine = `Long time no see, ${userName}!`;
     }
   }
 

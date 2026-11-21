@@ -121,7 +121,7 @@ export function CompletionCelebration({
     </div>
   );
 
-  const mountTarget = (typeof document !== 'undefined' ? document.querySelector('.app-frame') : null) ?? (typeof document !== 'undefined' ? document.body : null);
+  const mountTarget = (typeof document !== 'undefined' ? document.body : null);
   if (!mountTarget) return content;
   return createPortal(content, mountTarget);
 }

@@ -99,7 +99,7 @@ export function NoteEditorModal({ initialNote, onClose, onSave }: NoteEditorModa
     >
       <form
         className="import-modal-sheet"
-        style={{ maxHeight: '90%' }}
+        style={{ maxHeight: 'calc(100dvh - 140px)', overflowY: 'auto' }}
         role="dialog"
         aria-modal="true"
         aria-label="Edit note"

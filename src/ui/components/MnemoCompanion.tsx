@@ -13,8 +13,8 @@ type MnemoCompanionProps = {
 
 const BASE_WIDTH = 96;
 const BASE_HEIGHT = 86;
-const MIN_SCALE = 0.6;
-const MAX_SCALE = 1.8;
+const MIN_SCALE = 0.35;
+const MAX_SCALE = 2.4;
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
@@ -27,7 +27,7 @@ const reactions: Record<ReviewRating, { mood: MnemoMood; motion: string }> = {
   wrong: { mood: 'front-shocked', motion: 'shake' }
 };
 
-const IDLE_EXPRESSIONS: MnemoMood[] = ['front', 'front-happy', 'front'];
+const IDLE_EXPRESSIONS: MnemoMood[] = ['front'];
 
 type Gesture =
   | { kind: 'drag'; pointerId: number; startX: number; startY: number; originX: number; originY: number; moved: boolean }
@@ -165,6 +165,10 @@ export function MnemoCompanion({ containerRef, placement, reaction, onPlacementC
   function onPointerEnd(event: ReactPointerEvent<HTMLDivElement>) {
     const active = gesture.current;
     pointers.current.delete(event.pointerId);
+    if (active?.kind === 'pinch') {
+      commit();
+      gesture.current = null;
+    }
     if (pointers.current.size === 0) {
       setDragging(false);
       setTilt(0);
@@ -178,7 +182,7 @@ export function MnemoCompanion({ containerRef, placement, reaction, onPlacementC
         window.setTimeout(() => {
           setIsSomersaulting(false);
         }, 750);
-      } else {
+      } else if (active?.kind === 'drag') {
         commit();
       }
     }

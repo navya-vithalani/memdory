@@ -24,7 +24,10 @@ body { overflow: hidden; overscroll-behavior: none; }
   background: var(--bg);
 }
 
-.app-frame > :not(.ambient-background) { position: relative; z-index: 1; }
+.app-frame > :not(.ambient-background, .import-modal-backdrop, .celebration-overlay, .app-menu-backdrop, .app-menu-drawer, .session-prompt-backdrop) {
+  position: relative;
+  z-index: 1;
+}
 
 .app-frame > .screen {
   flex: 1 1 auto;

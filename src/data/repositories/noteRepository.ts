@@ -3,8 +3,17 @@ import { parseNoteBody, parseNoteTitle } from '../../core/importers/noteParser';
 import { normalizeTagName } from '../../core/importers/importParser';
 import type { NoteRecord } from '../../types';
 
-export async function listNotes(nodeId: string): Promise<NoteRecord[]> {
-  const notes = await db.notes.where('nodeId').equals(nodeId).toArray();
+export async function listNotes(nodeIdOrIds: string | string[]): Promise<NoteRecord[]> {
+  if (Array.isArray(nodeIdOrIds)) {
+    if (nodeIdOrIds.length === 0) return [];
+    if (nodeIdOrIds.length === 1) {
+      const notes = await db.notes.where('nodeId').equals(nodeIdOrIds[0]).toArray();
+      return notes.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+    }
+    const notes = await db.notes.where('nodeId').anyOf(nodeIdOrIds).toArray();
+    return notes.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  }
+  const notes = await db.notes.where('nodeId').equals(nodeIdOrIds).toArray();
   return notes.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 }
 

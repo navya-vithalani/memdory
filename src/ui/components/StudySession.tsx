@@ -29,6 +29,17 @@ export function StudySession({ sessionId, cards, initialPosition = 0, onExit }: 
   const screenRef = useRef<HTMLElement>(null);
   const startedAt = useRef(Date.now());
   const [showExitModal, setShowExitModal] = useState(false);
+  const [delayedFinished, setDelayedFinished] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
+
+  useEffect(() => {
+    if (session.finished && !delayedFinished) {
+      const timer = window.setTimeout(() => {
+        setDelayedFinished(true);
+      }, 1000);
+      return () => window.clearTimeout(timer);
+    }
+  }, [session.finished, delayedFinished]);
 
   const placement = useMemo<MnemoPlacement>(
     () => ({ x: settings.mnemoX ?? 0.86, y: settings.mnemoY ?? 0.5, scale: settings.mnemoScale ?? 1 }),
@@ -58,16 +69,19 @@ export function StudySession({ sessionId, cards, initialPosition = 0, onExit }: 
     };
   }, [current?.tagIds]);
 
-  if (session.finished) {
+  if (session.finished && delayedFinished) {
     const minutes = Math.max(1, Math.round((Date.now() - startedAt.current) / 60000));
     const percent = session.completed ? Math.round((session.correct / session.completed) * 100) : 0;
     return (
       <main className="screen study-end" ref={screenRef}>
-        {session.celebration && (
+        {showCelebration && session.celebration && (
           <CompletionCelebration
             oldStreak={session.celebration.oldStreak}
             newStreak={session.celebration.newStreak}
-            onContinue={session.dismissCelebration}
+            onContinue={() => {
+              session.dismissCelebration();
+              onExit();
+            }}
           />
         )}
         <Mnemo mood="excited" className="session-celebration-mascot" />
@@ -75,7 +89,18 @@ export function StudySession({ sessionId, cards, initialPosition = 0, onExit }: 
         <h1>Nice work!</h1>
         <p>{session.completed} reviews · {percent}% remembered</p>
         <p>{minutes} {minutes === 1 ? 'minute' : 'minutes'}</p>
-        <button className="primary-button" onClick={onExit}>Done</button>
+        <button
+          className="primary-button"
+          onClick={() => {
+            if (session.celebration) {
+              setShowCelebration(true);
+            } else {
+              onExit();
+            }
+          }}
+        >
+          Done
+        </button>
         {session.error && <p className="error-message" role="alert">{session.error}</p>}
       </main>
     );

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNotes } from '../../hooks/useNotes';
 import { useTree } from '../../hooks/useTree';
+import { getDescendantIds } from '../../core/tree/tree';
 import { db } from '../../data/db';
 import type { NoteRecord, TagRecord } from '../../types';
 import { NodeSelect } from '../components/NodeSelect';
@@ -27,7 +28,14 @@ export function NotesScreen() {
   const [highlightedNoteId, setHighlightedNoteId] = useState<string | null>(null);
   const [importOpen, setImportOpen] = useState(false);
 
-  const { notes, error: notesError, create, save, move, remove, refresh: refreshNotes } = useNotes(nodeId);
+  const nodeById = useMemo(() => new Map(nodes.map((n) => [n.id, n])), [nodes]);
+
+  const scopedNodeIds = useMemo(() => {
+    if (!nodeId) return [];
+    return getDescendantIds(nodes, nodeId);
+  }, [nodes, nodeId]);
+
+  const { notes, error: notesError, create, save, move, remove, refresh: refreshNotes } = useNotes(scopedNodeIds);
 
   // Default to first node
   useEffect(() => {
@@ -82,6 +90,38 @@ export function NotesScreen() {
       return true;
     });
   }, [notes, searchQuery, activeType, starredFilter, activeTagId, tagsMap]);
+
+  // Group notes by subtopic if multiple nodes are in scope
+  const groupedNotes = useMemo(() => {
+    if (scopedNodeIds.length <= 1) {
+      return [{ nodeId, notes: filteredNotes }];
+    }
+    const map = new Map<string, NoteRecord[]>();
+    for (const note of filteredNotes) {
+      const list = map.get(note.nodeId) ?? [];
+      list.push(note);
+      map.set(note.nodeId, list);
+    }
+    const result: Array<{ nodeId: string; notes: NoteRecord[] }> = [];
+    for (const id of scopedNodeIds) {
+      const list = map.get(id);
+      if (list && list.length > 0) {
+        result.push({ nodeId: id, notes: list });
+      }
+    }
+    return result;
+  }, [scopedNodeIds, nodeId, filteredNotes]);
+
+  const getSubtopicPath = (targetId: string) => {
+    const segments: string[] = [];
+    let curr = nodeById.get(targetId);
+    while (curr) {
+      segments.unshift(curr.name);
+      if (curr.id === nodeId) break;
+      curr = curr.parentId ? nodeById.get(curr.parentId) : undefined;
+    }
+    return segments.join(' › ');
+  };
 
   // Scroll to note on TOC chip tap
   function handleSelectNote(noteId: string) {
@@ -192,7 +232,7 @@ export function NotesScreen() {
                 <p style={{ margin: '0 0 8px', fontWeight: 700 }}>No notes found</p>
                 <small>Write a new note or import files to see them here.</small>
               </div>
-            ) : (
+            ) : scopedNodeIds.length <= 1 ? (
               <div className="notes-grid">
                 {filteredNotes.map((note) => (
                   <NoteCard
@@ -205,6 +245,36 @@ export function NotesScreen() {
                       await save(n.id, n.title ?? null, n.body, { starred: !n.starred });
                     }}
                   />
+                ))}
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                {groupedNotes.map((group) => (
+                  <div key={group.nodeId} className="notes-subtopic-section">
+                    <div className="notes-subtopic-header">
+                      <div className="notes-subtopic-label">
+                        <span className="notes-subtopic-icon">📁</span>
+                        <h3 className="notes-subtopic-title">{getSubtopicPath(group.nodeId)}</h3>
+                      </div>
+                      <span className="notes-subtopic-count">
+                        {group.notes.length} {group.notes.length === 1 ? 'note' : 'notes'}
+                      </span>
+                    </div>
+                    <div className="notes-grid">
+                      {group.notes.map((note) => (
+                        <NoteCard
+                          key={note.id}
+                          note={note}
+                          tagsMap={tagsMap}
+                          highlighted={highlightedNoteId === note.id}
+                          onOpenMenu={setMenuNote}
+                          onStarToggle={async (n) => {
+                            await save(n.id, n.title ?? null, n.body, { starred: !n.starred });
+                          }}
+                        />
+                      ))}
+                    </div>
+                  </div>
                 ))}
               </div>
             )}

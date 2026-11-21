@@ -1,12 +1,12 @@
 .celebration-overlay {
-  position: absolute;
+  position: fixed;
   inset: 0;
-  z-index: 1000;
+  z-index: 9999;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: var(--screen-padding);
-  background: rgba(20, 26, 77, 0.72);
+  background: rgba(15, 23, 42, 0.85);
   backdrop-filter: blur(8px);
   animation: celebration-fade-in var(--motion-standard) ease;
 }
@@ -33,7 +33,7 @@
 }
 
 .celebration-eyebrow {
-  color: var(--orange-pressed);
+  color: var(--wave);
   font-size: 12px;
   font-weight: 800;
   text-transform: uppercase;
@@ -70,12 +70,12 @@
 
 .celebration-drop-outline {
   fill: transparent;
-  stroke: var(--indigo);
+  stroke: var(--wave);
   stroke-width: 2;
 }
 
 .celebration-drop-water {
-  fill: var(--orange);
+  fill: var(--wave);
   animation: celebration-water-fill 600ms ease-out forwards;
 }
 
@@ -93,7 +93,7 @@
 }
 
 .celebration-streak-number {
-  color: var(--orange-pressed);
+  color: var(--wave);
   font-size: 52px;
   font-weight: 800;
   line-height: 1;

@@ -20,7 +20,7 @@ export function FamilyStudyCard({
   onRateCard,
   onNextFamily
 }: FamilyStudyCardProps) {
-  const [expandedId, setExpandedId] = useState<string | null>(cards[0]?.id ?? null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
   const [tagLabels, setTagLabels] = useState<Map<string, string>>(new Map());
 
   // Load tag labels for cards
@@ -115,15 +115,17 @@ export function FamilyStudyCard({
                 }}
                 onClick={() => setExpandedId(isExpanded ? null : card.id)}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <span
                     style={{
-                      fontSize: '11px',
+                      fontSize: '13px',
                       fontWeight: 800,
-                      padding: '3px 8px',
+                      padding: '4px 10px',
                       borderRadius: '8px',
-                      background: 'var(--indigo-tint)',
-                      color: 'var(--indigo)'
+                      background: rating ? 'var(--line)' : isExpanded ? 'var(--indigo)' : 'var(--indigo-tint)',
+                      color: rating ? 'var(--ink-soft)' : isExpanded ? '#ffffff' : 'var(--indigo)',
+                      letterSpacing: '0.02em',
+                      border: isExpanded ? 'none' : '1px solid rgba(79, 70, 229, 0.2)'
                     }}
                   >
                     {label}

@@ -13,6 +13,7 @@ const NotesScreen = lazy(() => import('../ui/screens/NotesScreen').then((module)
 const CardsScreen = lazy(() => import('../ui/screens/CardsScreen').then((module) => ({ default: module.CardsScreen })));
 const AnalysisScreen = lazy(() => import('../ui/screens/AnalysisScreen').then((module) => ({ default: module.AnalysisScreen })));
 const BrowseScreen = lazy(() => import('../ui/screens/BrowseScreen').then((module) => ({ default: module.BrowseScreen })));
+const LearningMapScreen = lazy(() => import('../ui/screens/LearningMapScreen').then((module) => ({ default: module.LearningMapScreen })));
 const ActivityScreen = lazy(() => import('../ui/screens/ActivityScreen').then((module) => ({ default: module.ActivityScreen })));
 const ProfileScreen = lazy(() => import('../ui/screens/ProfileScreen').then((module) => ({ default: module.ProfileScreen })));
 
@@ -60,7 +61,7 @@ function AppContent() {
             <Route path="/notes" element={<NotesScreen />} />
             <Route path="/cards" element={<CardsScreen />} />
             <Route path="/cards/browse" element={<BrowseScreen />} />
-            <Route path="/map" element={<BrowseScreen />} />
+            <Route path="/map" element={<LearningMapScreen />} />
             <Route path="/analysis" element={<AnalysisScreen />} />
             <Route path="/activity" element={<ActivityScreen />} />
             <Route path="/profile" element={<ProfileScreen />} />

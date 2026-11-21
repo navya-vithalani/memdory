@@ -10,6 +10,7 @@ import {
   calculateStreakFromSessions,
   getCompletedStudyDays,
   getCurrentWeekStudyDays,
+  getStreakCelebration,
   getStudyDayStartTimestamp,
   isFirstCompletedSessionOfDay,
   studyDayKey,
@@ -168,6 +169,34 @@ describe('streak logic', () => {
     ];
     expect(isFirstCompletedSessionOfDay(sessions, 's1', 210)).toBe(true);
     expect(isFirstCompletedSessionOfDay(sessions, 's2', 210)).toBe(false);
+  });
+
+  it('correctly calculates streak celebration: earns on first session of day, null on second session', () => {
+    const yesterday = new Date(2026, 10, 17, 14, 0, 0).getTime();
+    const todayFirst = new Date(2026, 10, 18, 10, 0, 0).getTime();
+    const todaySecond = new Date(2026, 10, 18, 16, 0, 0).getTime();
+
+    const sessions = [
+      { id: 'y1', status: 'completed', completedAt: yesterday },
+      { id: 't1', status: 'completed', completedAt: todayFirst },
+      { id: 't2', status: 'completed', completedAt: todaySecond }
+    ];
+
+    // First session of today gets celebration: streak extends from 1 to 2
+    const celebration1 = getStreakCelebration(
+      [sessions[0], sessions[1]],
+      't1',
+      210
+    );
+    expect(celebration1).toEqual({ oldStreak: 1, newStreak: 2 });
+
+    // Second session of today gets null (no celebration repeat)
+    const celebration2 = getStreakCelebration(
+      sessions,
+      't2',
+      210
+    );
+    expect(celebration2).toBeNull();
   });
 });
 

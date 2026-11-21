@@ -10,30 +10,33 @@ import {
 } from '../data/repositories/noteRepository';
 import type { NoteRecord } from '../types';
 
-export function useNotes(nodeId: string) {
+export function useNotes(nodeIdOrIds: string | string[]) {
   const [notes, setNotes] = useState<NoteRecord[]>([]);
   const [error, setError] = useState('');
 
+  const key = Array.isArray(nodeIdOrIds) ? nodeIdOrIds.slice().sort().join(',') : nodeIdOrIds;
+  const targetNodeId = Array.isArray(nodeIdOrIds) ? nodeIdOrIds[0] ?? '' : nodeIdOrIds;
+
   const refresh = useCallback(async () => {
-    if (!nodeId) {
+    if (!key) {
       setNotes([]);
       return [];
     }
-    const items = await listNotes(nodeId);
+    const items = await listNotes(nodeIdOrIds);
     setNotes(items);
     setError('');
     return items;
-  }, [nodeId]);
+  }, [key]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     let active = true;
-    if (!nodeId) {
+    if (!key) {
       setNotes([]);
       return () => {
         active = false;
       };
     }
-    void listNotes(nodeId)
+    void listNotes(nodeIdOrIds)
       .then((items) => {
         if (active) {
           setNotes(items);
@@ -46,24 +49,24 @@ export function useNotes(nodeId: string) {
     return () => {
       active = false;
     };
-  }, [nodeId]);
+  }, [key]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const importFile = useCallback(
     async (file: File) => {
-      const result = await importNotesFromMarkdown(nodeId, file.name, await file.text());
+      const result = await importNotesFromMarkdown(targetNodeId, file.name, await file.text());
       await refresh();
       return result;
     },
-    [nodeId, refresh]
+    [targetNodeId, refresh]
   );
 
   const create = useCallback(
     async (title: string | null, body: string, options?: CreateNoteOptions) => {
-      const note = await createNote(nodeId, title, body, options);
+      const note = await createNote(targetNodeId, title, body, options);
       await refresh();
       return note;
     },
-    [nodeId, refresh]
+    [targetNodeId, refresh]
   );
 
   const save = useCallback(
@@ -76,10 +79,10 @@ export function useNotes(nodeId: string) {
 
   const move = useCallback(
     async (noteId: string, direction: 'up' | 'down') => {
-      await moveNote(nodeId, noteId, direction);
+      await moveNote(targetNodeId, noteId, direction);
       return refresh();
     },
-    [nodeId, refresh]
+    [targetNodeId, refresh]
   );
 
   const remove = useCallback(
